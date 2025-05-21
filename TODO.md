@@ -34,15 +34,15 @@
     - [/] Implement secure storage and access control for rate information (PRD Line 68). (Noted for Firestore rules; data structure in place)
 
 #### 2. Frontend (React, Material UI, Tailwind CSS)
-    - [ ] Develop UI for creating resource profiles (intuitive interface - PRD Line 65).
-        - [ ] Form for personal information.
-        - [ ] Interface for adding/rating skills (1-10 scale, experience years) and certifications (PRD Line 66).
-        - [ ] Interface for defining work arrangements (full-time, part-time, custom schedules) and time off (PRD Line 67).
-        - [ ] Interface for inputting rate information (with appropriate access controls).
-    - [ ] Develop UI for viewing and listing resource profiles (with filtering options - PRD Line 341).
-    - [ ] Develop UI for updating resource profiles.
-    - [ ] Develop UI for viewing resource skills.
-    - [ ] Develop UI for viewing audit history of profile changes.
+    - [x] Develop UI for creating resource profiles (intuitive interface - PRD Line 65). (ResourceForm.tsx and CreateResourcePage.tsx created with all sub-sections: PersonalInfo, SkillsCerts, Availability, RatesLimits, Status)
+        - [x] Form for personal information. (Implemented in ResourceForm.tsx)
+        - [x] Interface for adding/rating skills (1-10 scale, experience years) and certifications (PRD Line 66). (Implemented in SkillsCertsFormSection.tsx and integrated into ResourceForm.tsx)
+        - [x] Interface for defining work arrangements (full-time, part-time, custom schedules) and time off (PRD Line 67). (Implemented in AvailabilityFormSection.tsx and integrated into ResourceForm.tsx)
+        - [x] Interface for inputting rate information (with appropriate access controls). (Implemented in RatesLimitsFormSection.tsx and integrated into ResourceForm.tsx. Access control is pending app-level role logic.)
+    - [/] Develop UI for viewing and listing resource profiles (with filtering options - PRD Line 341). (Initial ResourceCard.tsx, ResourceListPage.tsx, ResourceDetailPage.tsx created with mock data and basic filtering. API integration and full detail view pending.)
+    - [/] Develop UI for updating resource profiles. (Initial UpdateResourcePage.tsx created, reusing ResourceForm.tsx. API integration pending.)
+    - [x] Develop UI for viewing resource skills. (Covered by the skills section in ResourceDetailPage.tsx, which lists skills with proficiency and experience.)
+    - [x] Develop UI for viewing audit history of profile changes. (AuditLogDisplay.tsx created and integrated into ResourceDetailPage.tsx. Displays mock audit data.)
 
 #### 3. Testing
     - [ ] Unit tests for backend resource management logic (Cloud Functions).
