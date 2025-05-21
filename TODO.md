@@ -3,35 +3,35 @@
 ## I. Project Setup & Foundational Work
 
 - [ ] **Environment Setup**
-    - [ ] Initialize Git repository with appropriate `.gitignore`.
-    - [ ] Setup Firebase project (Authentication, Firestore, Cloud Functions, Storage, Hosting). (PRD Lines 187, 191-192, 196-201)
-    - [ ] Setup Google Cloud Platform project if additional services beyond Firebase are anticipated. (PRD Line 186)
-    - [ ] Setup frontend development environment (React.js with TypeScript, Material UI, Tailwind CSS, Echarts). (PRD Lines 188-189, sample_wireframe.md)
-    - [ ] Setup backend development environment (Node.js/TypeScript for Cloud Functions).
-    - [ ] Establish coding standards and linting rules for frontend and backend.
-    - [ ] Configure basic CI/CD pipeline for automated builds and tests.
+    - [x] Initialize Git repository with appropriate `.gitignore`.
+    - [ ] Setup Firebase project (Authentication, Firestore, Cloud Functions, Storage, Hosting). (PRD Lines 187, 191-192, 196-201) - **ACTION REQUIRED: User to set this up in Firebase console.**
+    - [ ] Setup Google Cloud Platform project if additional services beyond Firebase are anticipated. (PRD Line 186) - **ACTION REQUIRED: User to set this up in GCP console if needed.**
+    - [x] Setup frontend development environment (React.js with TypeScript, Material UI, Tailwind CSS, Echarts). (PRD Lines 188-189, sample_wireframe.md)
+    - [ ] Setup backend development environment (Node.js/TypeScript for Cloud Functions). (Structure created, Firebase init pending project setup)
+    - [x] Establish coding standards and linting rules for frontend and backend. (TailwindCSS linting TBD)
+    - [x] Configure basic CI/CD pipeline for automated builds and tests. (GitHub Actions workflow created)
 
 - [ ] **Initial UI/UX Design**
-    - [ ] Create detailed wireframes for all core screens identified in PRD (Lines 331-373) and `sample_wireframe.md`. (PRD Line 376 implies this is needed)
-    - [ ] Define User Personas and Key User Journeys.
-    - [ ] Develop an initial style guide and reusable UI component library based on Material UI and `sample_wireframe.md`.
-    - [ ] Consider advanced React state management library (if needed beyond Context/useState).
+    - [x] Create detailed wireframes for all core screens identified in PRD (Lines 331-373) and `sample_wireframe.md`. (PRD Line 376 implies this is needed) (Textual wireframes created in /wireframes directory for Dashboard, Resource Mgt, Project Mgt, Scheduling, Reports, AI Center)
+    - [x] Define User Personas and Key User Journeys. (Created user_personas.md, key_user_journeys.md in /ux_design)
+    - [x] Develop an initial style guide and reusable UI component library based on Material UI and `sample_wireframe.md`. (Created initial_style_guide.md, reusable_components_list.md in /ux_design)
+    - [x] Consider advanced React state management library (if needed beyond Context/useState). (Zustand recommended for simplicity and scalability; Redux Toolkit as a powerful alternative if more structure is needed later.)
 
 ## II. Phase 1: Core Resource Management (3-4 months)
 
 ### A. Feature: Resource Profile Management (PRD User Story 1.1, Lines 49-70)
 
 #### 1. Backend (Firebase Cloud Functions & Firestore)
-    - [ ] Design and implement Firestore schema for `Resources` collection (PRD Lines 210-242).
-    - [ ] Implement API: `POST /api/resources` - Create new resource (PRD Line 302).
-        - [ ] Include personal info, skills (taxonomy 1-10, experience), availability (work arrangements, custom schedules, time off), rates (standard, overtime, weekend), certifications, max assignments, max hours, status. (PRD Lines 57-61, 213-241)
-        - [ ] Include basic data entry/storage for historical performance metrics (PRD Line 62).
-    - [ ] Implement API: `GET /api/resources` - List all resources (PRD Line 300).
-    - [ ] Implement API: `GET /api/resources/{id}` - Get resource details (PRD Line 301).
-    - [ ] Implement API: `PUT /api/resources/{id}` - Update resource (PRD Line 303).
-    - [ ] Implement API: `GET /api/resources/{id}/skills` - Get resource skills (PRD Line 305).
-    - [ ] Implement logic for tracking changes to profiles with audit history (PRD Line 69).
-    - [ ] Implement secure storage and access control for rate information (PRD Line 68).
+    - [/] Design and implement Firestore schema for `Resources` collection (PRD Lines 210-242). (TypeScript interfaces defined in functions/src/types/resource.types.ts)
+    - [x] Implement API: `POST /api/resources` - Create new resource (PRD Line 302). (Implemented in functions/src/resources.ts, exported via index.ts)
+        - [x] Include personal info, skills (taxonomy 1-10, experience), availability (work arrangements, custom schedules, time off), rates (standard, overtime, weekend), certifications, max assignments, max hours, status. (PRD Lines 57-61, 213-241) (Structure and defaults in place; comprehensive validation is a TODO)
+        - [x] Include basic data entry/storage for historical performance metrics (PRD Line 62). (Field available in model)
+    - [x] Implement API: `GET /api/resources` - List all resources (PRD Line 300). (Implemented in functions/src/resources.ts, exported via index.ts. TODO: Pagination, filtering, sorting)
+    - [x] Implement API: `GET /api/resources/{id}` - Get resource details (PRD Line 301). (Implemented in functions/src/resources.ts, exported via index.ts. Assumes ID in path via Firebase Hosting rewrite)
+    - [x] Implement API: `PUT /api/resources/{id}` - Update resource (PRD Line 303). (Implemented in functions/src/resources.ts, exported via index.ts. Assumes ID in path. Includes audit log update.)
+    - [x] Implement API: `GET /api/resources/{id}/skills` - Get resource skills (PRD Line 305). (Implemented in functions/src/resources.ts, exported via index.ts. Assumes ID in path via Firebase Hosting rewrite.)
+    - [x] Implement logic for tracking changes to profiles with audit history (PRD Line 69). (Creation and update logs implemented.)
+    - [/] Implement secure storage and access control for rate information (PRD Line 68). (Noted for Firestore rules; data structure in place)
 
 #### 2. Frontend (React, Material UI, Tailwind CSS)
     - [ ] Develop UI for creating resource profiles (intuitive interface - PRD Line 65).
