@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /resources/{resourceId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // Further validation in Cloud Function
+
+      // Allow updates if not touching 'rates', OR if touching 'rates' and user is admin/manager.
+      // This means if the `rates` object itself is part of the update payload, roles are checked.
+      // More granular checks (e.g., if only rates.standard changes) are harder in rules alone
+      // and are better handled in conjunction with backend logic.
+      allow update: if request.auth != null &&
+                       (
+                         // Case 1: 'rates' field is NOT part of the incoming update data
+                         !('rates' in request.resource.data) ||
+                         // Case 2: 'rates' IS part of the incoming update data, check role
+                         ('rates' in request.resource.data && 
+                          (request.auth.token.role == 'admin' || request.auth.token.role == 'manager'))
+                       );
+      
+      allow delete: if request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'manager');
+    }
+    // TODO: Add rules for other collections (projects, schedules, etc.)
+  }
+}

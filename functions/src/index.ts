@@ -24,3 +24,15 @@ export const getResourceById = resourceHandlers.getResourceById;
 export const updateResource = resourceHandlers.updateResource;
 export const getResourceSkills = resourceHandlers.getResourceSkills;
 // Add other resource handlers here as they are implemented
+
+// Import and re-export project and task functions
+import * as projectHandlers from './projects';
+
+export const createProject = projectHandlers.createProject;
+export const listProjects = projectHandlers.listProjects;
+export const getProjectById = projectHandlers.getProjectById;
+export const updateProject = projectHandlers.updateProject;
+export const createTask = projectHandlers.createTask;
+export const listTasks = projectHandlers.listTasks;
+export const updateTask = projectHandlers.updateTask;
+// Add other project/task handlers here as they are implemented
