@@ -11,41 +11,33 @@ const resourcesCollection = db.collection('resources');
  * Creates a new resource.
  * PRD Lines: 57-62, 69, 213-241, 302.
  */
-export const createResource = functions.https.onRequest(async (request, response) => {
-  if (request.method !== 'POST') {
-    response.status(405).send('Method Not Allowed');
-    return;
-  }
-
-  try {
-    const data = request.body as Partial<Omit<Resource, 'id' | 'createdAt' | 'updatedAt' | 'auditLog'> >;
-
+// Core logic for creating a resource
+export async function createResourceLogic(
+    data: Partial<Omit<Resource, 'id' | 'createdAt' | 'updatedAt' | 'auditLog'> >,
+    authenticatedUserId?: string // Optional: pass if auth is integrated
+  ): Promise<Resource> {
     // --- Basic Input Validation (expand with a library like Zod or Joi) ---
     if (!data.personalInfo || !data.personalInfo.name || !data.personalInfo.email || !data.personalInfo.employeeId) {
-      response.status(400).json({ error: 'Missing required personal information: name, email, employeeId.' });
-      return;
+      throw new functions.https.HttpsError('invalid-argument', 'Missing required personal information: name, email, employeeId.');
     }
     if (!data.status) {
-        response.status(400).json({ error: 'Missing required field: status.' });
-        return;
+        throw new functions.https.HttpsError('invalid-argument', 'Missing required field: status.');
     }
     if (!data.rates || data.rates.standard === undefined) {
-        response.status(400).json({ error: 'Missing required field: rates.standard.' });
-        return;
+        throw new functions.https.HttpsError('invalid-argument', 'Missing required field: rates.standard.');
     }
 
     // TODO: Add more comprehensive validation for all fields, skills, availability, rates structure.
     // TODO: Check for uniqueness of email and employeeId before creating.
-    // This would typically involve a query: 
     // const emailExists = await resourcesCollection.where('personalInfo.email', '==', data.personalInfo.email).limit(1).get();
-    // if (!emailExists.empty) { response.status(409).json({ error: 'Email already exists.'}); return; }
+    // if (!emailExists.empty) { throw new functions.https.HttpsError('already-exists', 'Email already exists.'); }
 
     const newResourceId = resourcesCollection.doc().id;
     const now = new Date().toISOString();
 
     const initialAuditLogEntry: AuditLogEntry = {
       timestamp: now,
-      userId: 'system', // Or authenticated user ID if available
+      userId: authenticatedUserId || 'system', 
       fieldName: 'N/A',
       oldValue: 'N/A',
       newValue: 'N/A',
@@ -55,35 +47,54 @@ export const createResource = functions.https.onRequest(async (request, response
     const newResource: Resource = {
       id: newResourceId,
       ...{
-        // Provide defaults for optional top-level fields if not provided
         skills: [],
-        availability: { workArrangement: { type: 'full-time' }, timeOff: [] }, // Default work arrangement
+        availability: { workArrangement: { type: 'full-time' }, timeOff: [] },
         certifications: [],
         specializations: [],
         historicalPerformanceMetrics: [],
         department: 'N/A',
         location: 'N/A',
         managerId: 'N/A',
-        ...data, // Spread incoming data, potentially overwriting defaults
+        ...data,
       },
-      personalInfo: data.personalInfo, // Ensure it's not overwritten by spread if partially provided
+      personalInfo: data.personalInfo, 
       status: data.status,
-      rates: data.rates, // Ensure it's not overwritten
-      maxAssignments: data.maxAssignments === undefined ? 2 : data.maxAssignments, // PRD Default: 2
-      maxHoursPerDay: data.maxHoursPerDay === undefined ? 14 : data.maxHoursPerDay, // PRD Default: 14
+      rates: data.rates, 
+      maxAssignments: data.maxAssignments === undefined ? 2 : data.maxAssignments, 
+      maxHoursPerDay: data.maxHoursPerDay === undefined ? 14 : data.maxHoursPerDay, 
       auditLog: [initialAuditLogEntry],
       createdAt: now,
       updatedAt: now,
     };
 
-    // Firestore security rules should protect rate information (PRD Line 68)
     await resourcesCollection.doc(newResourceId).set(newResource);
+    return newResource; // Return the full new resource, ID is part of it
+}
 
-    response.status(201).json({ id: newResourceId, ...newResource });
+/**
+ * Creates a new resource.
+ * PRD Lines: 57-62, 69, 213-241, 302.
+ */
+export const createResource = functions.https.onRequest(async (request, response) => {
+  if (request.method !== 'POST') {
+    response.status(405).send('Method Not Allowed');
+    return;
+  }
+
+  try {
+    const data = request.body as Partial<Omit<Resource, 'id' | 'createdAt' | 'updatedAt' | 'auditLog'> >;
+    // TODO: Extract authenticated user ID from request if auth is set up (e.g., from a decoded token)
+    // const authenticatedUserId = getUserIdFromRequest(request); 
+    const newResource = await createResourceLogic(data /*, authenticatedUserId */);
+    response.status(201).json(newResource);
 
   } catch (error) {
     functions.logger.error('Error creating resource:', error);
-    response.status(500).json({ error: 'Failed to create resource.', details: (error as Error).message });
+    if (error instanceof functions.https.HttpsError) {
+      response.status(error.httpErrorCode.status).json({ error: error.message, details: error.details });
+    } else {
+      response.status(500).json({ error: 'Failed to create resource.', details: (error as Error).message });
+    }
   }
 });
 

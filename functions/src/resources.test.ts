@@ -1,93 +1,90 @@
-import * as admin from 'firebase-admin';
+// IMPORTANT: jest.mock must be at the top, before any imports that might use firebase-admin.
+
+// --- Define mocks that will be initialized by the factory --- 
+// These are exported ONLY for the test file to be able to clear them or check calls.
+export const mockFirestore = jest.fn(); // To check if admin.firestore() was called
+export const mockFirestoreCollection = jest.fn();
+export const mockFirestoreDoc = jest.fn();
+export const mockFirestoreSet = jest.fn();
+export const mockFirestoreGet = jest.fn();
+export const mockFirestoreAdd = jest.fn();
+export const mockFirestoreUpdate = jest.fn();
+export const mockFirestoreWhere = jest.fn();
+export const mockFirestoreOrderBy = jest.fn();
+export const mockFirestoreLimit = jest.fn();
+export const mockFirestoreStartAfter = jest.fn();
+export const mockInitializeApp = jest.fn(); // To check if admin.initializeApp() was called
+
+jest.mock('firebase-admin', () => {
+  mockFirestore.mockImplementation(() => ({ 
+    collection: mockFirestoreCollection.mockImplementation(() => { 
+      return {
+        doc: mockFirestoreDoc.mockImplementation((docId?: string) => {
+          return {
+            id: docId || 'auto-generated-id-mock',
+            get: mockFirestoreGet,
+            set: mockFirestoreSet,
+            update: mockFirestoreUpdate,
+            collection: mockFirestoreCollection, 
+          };
+        }),
+        add: mockFirestoreAdd,
+        where: mockFirestoreWhere.mockReturnThis(),
+        orderBy: mockFirestoreOrderBy.mockReturnThis(),
+        limit: mockFirestoreLimit.mockReturnThis(),
+        startAfter: mockFirestoreStartAfter.mockReturnThis(),
+        get: mockFirestoreGet, 
+      };
+    }),
+  }));
+
+  return {
+    initializeApp: mockInitializeApp, 
+    firestore: mockFirestore, 
+    // Use a getter for apps to ensure it's freshly evaluated as empty by the SUT
+    get apps() { return []; }, 
+    credential: { applicationDefault: jest.fn() },
+    storage: () => ({ bucket: () => ({}) }),
+  };
+});
+
+// --- Now import everything else ---
 import * as functions from 'firebase-functions';
 import fft from 'firebase-functions-test';
+import { createResourceLogic } from './resources';
+import { Resource } from './types/resource.types';
 
-// Initialize firebase-functions-test. Requires a service account key and project ID.
-// Since we don't have a real project, we can use offline mode.
-const testEnv = fft(); // Offline mode by default, no need for config
+const testEnv = fft(); // Offline mode
 
-// Import the functions to be tested
-import { createResource, listResources, getResourceById, updateResource, getResourceSkills } from './resources';
-import { Resource, PersonalInfo, Skill, Availability, Rates, ResourceStatus, AuditLogEntry } from './types/resource.types';
-
-// Mock Firebase Admin SDK
-// We need to mock the parts of Firestore that our functions use.
-const mockCollection = jest.fn().mockReturnThis();
-const mockDoc = jest.fn().mockReturnThis();
-const mockAdd = jest.fn();
-const mockSet = jest.fn();
-const mockGet = jest.fn();
-const mockUpdate = jest.fn();
-const mockWhere = jest.fn().mockReturnThis();
-const mockOrderBy = jest.fn().mockReturnThis();
-const mockLimit = jest.fn().mockReturnThis();
-const mockStartAfter = jest.fn().mockReturnThis();
-
-jest.mock('firebase-admin', () => ({
-  initializeApp: jest.fn(),
-  firestore: jest.fn(() => ({
-    collection: mockCollection,
-    // doc: mockDoc, // We'll define this more granularly if needed or let collection().doc() work
-  })),
-  credential: {
-    applicationDefault: jest.fn(), // if you use this in your functions
-  },
-  storage: jest.fn(() => ({
-    bucket: jest.fn(() => ({ // Mock the default bucket
-      // Mock file operations if your functions use Storage
-    })),
-  })),
-}));
-
-// Mock functions.logger
 jest.spyOn(functions.logger, 'info').mockImplementation(console.log);
 jest.spyOn(functions.logger, 'error').mockImplementation(console.error);
 
-describe('Resource Management Cloud Functions', () => {
+describe('Resource Management Cloud Functions - Logic', () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    mockCollection.mockClear();
-    mockDoc.mockClear();
-    mockAdd.mockClear();
-    mockSet.mockClear();
-    mockGet.mockClear();
-    mockUpdate.mockClear();
-    mockWhere.mockClear();
-    mockOrderBy.mockClear();
-    mockLimit.mockClear();
-    mockStartAfter.mockClear();
+    mockInitializeApp.mockClear();
+    mockFirestore.mockClear();
+    mockFirestoreCollection.mockClear();
+    mockFirestoreDoc.mockClear();
+    mockFirestoreSet.mockClear();
+    mockFirestoreGet.mockClear();
+    mockFirestoreAdd.mockClear();
+    mockFirestoreUpdate.mockClear();
+    mockFirestoreWhere.mockClear();
+    mockFirestoreOrderBy.mockClear();
+    mockFirestoreLimit.mockClear();
+    mockFirestoreStartAfter.mockClear();
 
-    // Default behavior for collection().doc()
-    mockCollection.mockImplementation((collectionPath: string) => {
-        // console.log(`Mocking collection: ${collectionPath}`);
-        return {
-            doc: mockDoc.mockImplementation((docId?: string) => {
-                // console.log(`Mocking doc: ${docId} in ${collectionPath}`);
-                const resolvedDocId = docId || 'generated-id'; // Simulate auto-ID generation
-                return {
-                    id: resolvedDocId,
-                    get: mockGet,
-                    set: mockSet,
-                    update: mockUpdate,
-                    collection: mockCollection, // For subcollections if any
-                };
-            }),
-            add: mockAdd,
-            where: mockWhere,
-            orderBy: mockOrderBy,
-            limit: mockLimit,
-            startAfter: mockStartAfter,
-            get: mockGet, // For collection queries
-        };
-    });
+    mockFirestoreSet.mockResolvedValue(undefined);
+    mockFirestoreUpdate.mockResolvedValue(undefined);
+    mockFirestoreGet.mockResolvedValue({ exists: false, data: () => undefined, id: 'mock-get-id' });
+    mockFirestoreAdd.mockResolvedValue({ id: 'new-mock-added-id' });
   });
 
   afterAll(() => {
-    // Clean up firebase-functions-test
     testEnv.cleanup();
   });
 
-  describe('createResource', () => {
+  describe('createResourceLogic', () => {
     it('should create a new resource and return it with an ID and audit log', async () => {
       const resourceData: Omit<Resource, 'id' | 'createdAt' | 'updatedAt' | 'auditLog'> = {
         personalInfo: { name: 'Test User', email: 'test@example.com', employeeId: 'T001' },
@@ -98,53 +95,72 @@ describe('Resource Management Cloud Functions', () => {
         maxAssignments: 1,
         maxHoursPerDay: 8,
       };
+      const testUserId = 'test-user-uid';
 
-      const mockResourceId = 'mockResourceId';
-      mockAdd.mockResolvedValueOnce({ id: mockResourceId }); // Simulate Firestore's add() returning a DocumentReference
+      const result = await createResourceLogic(resourceData, testUserId);
 
-      // Wrap the Cloud Function
-      const wrapped = testEnv.wrap(createResource);
+      expect(mockInitializeApp).toHaveBeenCalledTimes(2); // Once by fft, once by resources.ts 
+      expect(mockFirestore).toHaveBeenCalledTimes(1); 
+      expect(mockFirestoreCollection).toHaveBeenCalledWith('resources');
+      expect(mockFirestoreDoc).toHaveBeenCalledTimes(2); 
+      expect(mockFirestoreDoc).toHaveBeenNthCalledWith(1); 
+      expect(mockFirestoreDoc).toHaveBeenNthCalledWith(2, 'auto-generated-id-mock');
       
-      // Call the function with mock data
-      // For callable functions, data is the first arg, context is the second.
-      const result = await wrapped(resourceData, { auth: { uid: 'test-user-uid' } });
-
-      expect(mockCollection).toHaveBeenCalledWith('resources');
-      expect(mockAdd).toHaveBeenCalledTimes(1);
-      const addedData = mockAdd.mock.calls[0][0];
-      expect(addedData.personalInfo.name).toBe('Test User');
-      expect(addedData.status).toBe('active');
-      expect(addedData.createdAt).toBeInstanceOf(Date);
-      expect(addedData.updatedAt).toBeInstanceOf(Date);
-      expect(addedData.auditLog).toHaveLength(1);
-      expect(addedData.auditLog[0].description).toBe('Resource created');
-      expect(addedData.auditLog[0].userId).toBe('test-user-uid');
+      expect(mockFirestoreSet).toHaveBeenCalledTimes(1);
+      const setData = mockFirestoreSet.mock.calls[0][0];
+      
+      expect(setData.id).toBe('auto-generated-id-mock'); 
+      expect(setData.personalInfo.name).toBe('Test User');
+      expect(setData.status).toBe('active');
+      expect(setData.createdAt).toBeInstanceOf(String);
+      expect(setData.updatedAt).toBeInstanceOf(String);
+      expect(setData.auditLog).toHaveLength(1);
+      expect(setData.auditLog[0].description).toBe('Resource profile created.');
+      expect(setData.auditLog[0].userId).toBe(testUserId);
 
       expect(result).toBeDefined();
-      expect(result.id).toBe(mockResourceId);
+      expect(result.id).toBe(setData.id);
       expect(result.personalInfo.name).toBe('Test User');
-      expect(result.auditLog).toHaveLength(1);
+      expect(result.auditLog!).toHaveLength(1);
+      expect(result.auditLog![0].userId).toBe(testUserId);
     });
 
-    it('should throw an error if required fields are missing', async () => {
-        const incompleteData = {
-            // personalInfo is missing
+    it('should throw an HttpsError if required personalInfo fields are missing', async () => {
+        const incompleteData: Partial<Resource> = {
             skills: [],
             availability: { workArrangement: { type: 'full-time' }, timeOff: [] },
             rates: { standard: 50 },
             status: 'active',
-        } as any; // Cast to any to bypass type checking for test
-  
-        const wrapped = testEnv.wrap(createResource);
+        };
+        const testUserId = 'test-user-uid';
         
-        await expect(wrapped(incompleteData, { auth: { uid: 'test-user-uid' } }))
+        await expect(createResourceLogic(incompleteData as any, testUserId))
           .rejects
-          .toThrow('Missing required fields in resource data.'); // Or whatever error your validation throws
+          .toThrow(new functions.https.HttpsError('invalid-argument', 'Missing required personal information: name, email, employeeId.'));
     });
 
-    // TODO: Add more tests for createResource (e.g., specific field validations, uniqueness checks if implemented)
-  });
+    it('should throw an HttpsError if status is missing', async () => {
+      const incompleteData: Partial<Resource> = {
+          personalInfo: { name: 'Test User', email: 'test@example.com', employeeId: 'T001' },
+          rates: { standard: 50 },
+      };
+      const testUserId = 'test-user-uid';
+      await expect(createResourceLogic(incompleteData as any, testUserId))
+        .rejects
+        .toThrow(new functions.https.HttpsError('invalid-argument', 'Missing required field: status.'));
+    });
 
-  // TODO: Add describe blocks for listResources, getResourceById, updateResource, getResourceSkills
+    it('should throw an HttpsError if rates.standard is missing', async () => {
+      const incompleteData: Partial<Resource> = {
+          personalInfo: { name: 'Test User', email: 'test@example.com', employeeId: 'T001' },
+          status: 'active',
+      };
+      const testUserId = 'test-user-uid';
+      await expect(createResourceLogic(incompleteData as any, testUserId))
+        .rejects
+        .toThrow(new functions.https.HttpsError('invalid-argument', 'Missing required field: rates.standard.'));
+    });
+
+  });
 
 });
