@@ -402,5 +402,104 @@ describe('ResourceListPage', () => {
     });
   });
 
+  describe('Skills Filter Functionality', () => {
+    const generateMockResources = (length: number, offset: number = 0, namePrefix: string = 'Resource', skills: string[] = []) => 
+      Array.from({ length }, (_, i) => ({ 
+        id: `res-${i + offset}`,
+        info: { name: `${namePrefix} ${i + offset}`, email: `res${i + offset}@example.com`, primaryRole: 'Developer', skills: skills }, 
+        status: 'Available',
+        projectCount: i % 3,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: generateMockResources(5, 0, "Initial"), 
+        total: 5 
+      });
+    });
+
+    it('should open the skills filter modal when "Skills" filter button is clicked', async () => {
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const skillsFilterButton = screen.getByRole('button', { name: /skills/i }); 
+      fireEvent.click(skillsFilterButton);
+
+      expect(await screen.findByRole('dialog', { name: /filter by skills/i })).toBeInTheDocument();
+    });
+
+    it('should select skills in the modal and apply the filter', async () => {
+      const skillsToSelect = ['React', 'Node.js'];
+      const filteredResources = generateMockResources(1, 0, 'FilteredSkill', skillsToSelect);
+
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const skillsFilterButton = screen.getByRole('button', { name: /skills/i });
+      fireEvent.click(skillsFilterButton);
+
+      const modal = await screen.findByRole('dialog', { name: /filter by skills/i });
+
+      for (const skill of skillsToSelect) {
+        const skillCheckbox = await within(modal).findByLabelText(skill, undefined, { timeout: 2000 }); 
+        fireEvent.click(skillCheckbox);
+      }
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: filteredResources, total: filteredResources.length });
+
+      const applyButton = within(modal).getByRole('button', { name: /apply|save/i }); 
+      fireEvent.click(applyButton);
+
+      expect(await screen.findByText('FilteredSkill 0')).toBeInTheDocument();
+      expect(screen.queryByText('Initial 0')).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ skills: skillsToSelect, page: 1 })
+      );
+      
+      expect(screen.queryByRole('dialog', { name: /filter by skills/i })).not.toBeInTheDocument();
+    });
+
+    it('should clear selected skills in the modal and show all resources', async () => {
+      const skillsToSelect = ['React'];
+      const initialFilteredResources = generateMockResources(1, 0, 'FilteredSkill', skillsToSelect);
+      const allResourcesAfterClear = generateMockResources(5, 0, "AllSkillsCleared");
+
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const skillsFilterButton = screen.getByRole('button', { name: /skills/i });
+      fireEvent.click(skillsFilterButton);
+      const modal = await screen.findByRole('dialog', { name: /filter by skills/i });
+      const skillCheckbox = await within(modal).findByLabelText(skillsToSelect[0], undefined, { timeout: 2000 });
+      fireEvent.click(skillCheckbox);
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: initialFilteredResources, total: initialFilteredResources.length });
+      const applyButton = within(modal).getByRole('button', { name: /apply|save/i });
+      fireEvent.click(applyButton);
+      expect(await screen.findByText('FilteredSkill 0')).toBeInTheDocument();
+
+      fireEvent.click(skillsFilterButton);
+      const modalAgain = await screen.findByRole('dialog', { name: /filter by skills/i });
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: allResourcesAfterClear, total: allResourcesAfterClear.length });
+
+      const clearButton = within(modalAgain).getByRole('button', { name: /clear|reset/i }); 
+      fireEvent.click(clearButton);
+      
+      expect(await screen.findByText('AllSkillsCleared 0')).toBeInTheDocument();
+      expect(screen.queryByText('FilteredSkill 0')).not.toBeInTheDocument();
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ skills: [], page: 1 })
+      );
+      
+      expect(screen.queryByRole('dialog', { name: /filter by skills/i })).not.toBeInTheDocument();
+    });
+
+    // Further tests will cover skill selection and application
+  });
+
   // More test suites will follow
 });

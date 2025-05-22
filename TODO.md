@@ -241,7 +241,10 @@
             - [x] Test status filter functionality.
                 - [x] Verify selecting a status calls API with status and updates UI.
                 - [x] Verify clearing status filter calls API with empty status and updates UI.
-            - [ ] Test skills filter functionality (modal opening, selection, application).
+            - [x] Test skills filter functionality (modal opening, selection, application).
+                - [x] Verify "Skills" filter button opens the skills selection modal.
+                - [x] Verify selecting skills in modal and applying calls API with skills and updates UI.
+                - [x] Verify clearing skills in modal calls API with empty skills and updates UI.
             - [ ] Test rate range filter functionality.
             - [ ] Test sorting functionality (by name, email, status).
             - [ ] Test "View Details" button navigation for a resource.
