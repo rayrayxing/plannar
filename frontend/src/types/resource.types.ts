@@ -12,22 +12,24 @@ export interface PersonalInfo {
   employmentStatus?: string; // e.g., Active, Onboarding, Departing (from TRD info.status)
 }
 
-export interface Skill {
-  name: string; // e.g., "React", "Project Management"
+export interface SkillEndorsement {
+  skillId: string; // FK to global Skills collection
+  skillName?: string; // Denormalized skill name for easier display
   proficiency: number; // 1-10 scale
   yearsExperience: number;
-  certifications?: string[]; // List of relevant certification names or IDs
+  lastUsedDate?: string; // ISO Date string
+  interestLevel?: number; // 1-5 scale (e.g., 1=Low, 5=High)
+  notes?: string; // Optional field for any specific notes
 }
 
-export interface CertificationDetail {
-  id?: string; // Optional: client-side ID for list management during editing
+export interface Certification {
+  id: string; // Unique ID for this certification instance
   name: string;
-  issuingOrganization: string;
-  issueDate: string; // Should be stored/handled as ISO date string
-  expirationDate?: string; // Optional, ISO date string
-  credentialId?: string; // Optional
-  credentialURL?: string; // Optional
-  skillsCovered?: string[]; // Optional array of skill names or IDs
+  issuingBody: string;
+  issueDate: string; // ISO Date string
+  expirationDate?: string; // ISO Date string
+  credentialId?: string;
+  detailsLink?: string; // URL to the credential or details
 }
 
 export interface DayWorkHours {
@@ -73,11 +75,14 @@ export interface Rates {
   currency?: string; // e.g., "USD", "EUR"
 }
 
-export interface HistoricalPerformanceMetric {
-  metricName: string; // e.g., "Project Completion Rate", "Client Satisfaction Score"
+export interface PerformanceMetric {
+  id: string; // Unique ID for this performance entry
+  metricName: string;
   value: string | number;
-  dateRecorded: string; // Timestamp
+  date: string; // ISO Date string or Timestamp when this metric was recorded/assessed
+  period?: string; // e.g., "Q1 2024", "Annual 2023"
   notes?: string;
+  assessedBy?: string; // User ID or name of the assessor
 }
 
 export interface AuditLogEntry {
@@ -109,16 +114,16 @@ export type ResourceStatus = 'active' | 'onboarding' | 'offboarding' | 'on-leave
 export interface Resource {
   id: string; // Firestore document ID
   personalInfo: PersonalInfo;
-  skills: Skill[];
+  skills: SkillEndorsement[];
   availability: Availability;
   rates: Rates; // Securely handled
   maxAssignments: number; // Default: 2 (PRD Line 239)
   maxHoursPerDay: number; // Default: 14 (PRD Line 240)
   status: ResourceStatus; // active, onboarding, offboarding (PRD Line 241)
-  certifications?: CertificationDetail[]; // General certifications (TRD Sec 3.2.1)
+  certifications?: Certification[]; // General certifications (TRD Sec 3.2.1)
   specializations?: string[]; // General specializations
   preferences?: ResourcePreferences;
-  historicalPerformanceMetrics?: HistoricalPerformanceMetric[]; // (PRD Line 62)
+  performance?: PerformanceMetric[]; // Array of performance entries (TRD Sec 3.2.1)
   auditLog?: AuditLogEntry[]; // (PRD Line 69)
   createdAt: string; // Timestamp
   updatedAt: string; // Timestamp

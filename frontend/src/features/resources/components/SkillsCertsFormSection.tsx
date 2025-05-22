@@ -3,14 +3,14 @@ import { TextField, Button, Box, Typography, Grid, Paper, IconButton, Select, Me
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { Skill, CertificationDetail } from '../../../types/resource.types';
+import { SkillEndorsement, Certification } from '../../../types/resource.types';
 import { useModal } from '../../../contexts/ModalContext';
 
 interface SkillsCertsFormSectionProps {
-  skills: Skill[];
-  setSkills: React.Dispatch<React.SetStateAction<Skill[]>>;
-  certifications: CertificationDetail[];
-  setCertifications: React.Dispatch<React.SetStateAction<CertificationDetail[]>>;
+  skills: SkillEndorsement[];
+  setSkills: React.Dispatch<React.SetStateAction<SkillEndorsement[]>>;
+  certifications: Certification[];
+  setCertifications: React.Dispatch<React.SetStateAction<Certification[]>>;
 }
 
 const SkillsCertsFormSection: React.FC<SkillsCertsFormSectionProps> = ({ skills, setSkills, certifications, setCertifications }) => {
@@ -95,7 +95,7 @@ const SkillsCertsFormSection: React.FC<SkillsCertsFormSectionProps> = ({ skills,
         <List dense sx={{ mt: 1 }}>
           {skills.map((skill, index) => (
             <ListItem 
-              key={skill.name} 
+              key={skill.skillId} 
               className="mb-1 border rounded"
               secondaryAction={
                 <Box>
@@ -109,8 +109,13 @@ const SkillsCertsFormSection: React.FC<SkillsCertsFormSectionProps> = ({ skills,
               }
             >
               <ListItemText 
-                primary={skill.name}
-                secondary={`Proficiency: ${skill.proficiency}/10, Experience: ${skill.yearsExperience} yr(s)`}
+                primary={skill.skillName || skill.skillId}
+                secondary={
+                    `Proficiency: ${skill.proficiency}/10 | Exp: ${skill.yearsExperience} yr(s)` +
+                    (skill.lastUsedDate ? ` | Last Used: ${skill.lastUsedDate}` : '') +
+                    (skill.interestLevel ? ` | Interest: ${skill.interestLevel}/5` : '') +
+                    (skill.notes ? ` | Notes: ${skill.notes}` : '')
+                }
               />
             </ListItem>
           ))}
@@ -132,7 +137,7 @@ const SkillsCertsFormSection: React.FC<SkillsCertsFormSectionProps> = ({ skills,
         <List dense sx={{ mt: 1 }}>
           {certifications.map((cert, index) => (
             <ListItem 
-              key={cert.id || index} 
+              key={cert.id} 
               className="mb-1 border rounded" 
               secondaryAction={
                 <Box>
@@ -147,7 +152,12 @@ const SkillsCertsFormSection: React.FC<SkillsCertsFormSectionProps> = ({ skills,
             >
               <ListItemText 
                 primary={cert.name}
-                secondary={`${cert.issuingOrganization} | Issued: ${cert.issueDate} | Expires: ${cert.expirationDate || 'N/A'}`}
+                secondary={
+                    `${cert.issuingBody} | Issued: ${cert.issueDate}` +
+                    (cert.expirationDate ? ` | Expires: ${cert.expirationDate}` : ' | Expires: N/A') +
+                    (cert.credentialId ? ` | ID: ${cert.credentialId}` : '') +
+                    (cert.detailsLink ? ` | Link: Present` : '') // Consider making this a clickable link if space/design allows
+                }
               />
             </ListItem>
           ))}

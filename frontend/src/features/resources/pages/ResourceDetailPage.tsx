@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Paper, CircularProgress, Box, Grid, Chip, List, ListItem, ListItemText, Divider, Button } from '@mui/material';
 import { useParams, Link as RouterLink } from 'react-router-dom'; // Assuming react-router-dom
-import { Resource, Skill, AuditLogEntry, ResourceStatus, ExceptionEntry, DayOfWeek } from '../../../types/resource.types';
+import { Resource, SkillEndorsement, Certification, PerformanceMetric, AuditLogEntry, ResourceStatus, ExceptionEntry, DayOfWeek } from '../../../types/resource.types';
 import AuditLogDisplay from '../components/AuditLogDisplay';
 
 // TODO: Import an API service
@@ -24,9 +24,9 @@ const MOCK_SINGLE_RESOURCE: Resource = {
       employmentStatus: 'Active',
     },
     skills: [
-        { name: 'React', proficiency: 8, yearsExperience: 3 }, 
-        { name: 'Node.js', proficiency: 7, yearsExperience: 2 },
-        { name: 'TypeScript', proficiency: 7, yearsExperience: 2 },
+        { skillId: 'react-uuid', skillName: 'React', proficiency: 8, yearsExperience: 3, lastUsedDate: '2024-05-01', interestLevel: 5, notes: 'Primary frontend skill' },
+        { skillId: 'nodejs-uuid', skillName: 'Node.js', proficiency: 7, yearsExperience: 2, lastUsedDate: '2024-04-15', interestLevel: 4 },
+        { skillId: 'ts-uuid', skillName: 'TypeScript', proficiency: 7, yearsExperience: 2, lastUsedDate: '2024-05-10', interestLevel: 4, notes: 'Used in all recent projects' },
     ],
     availability: {
       workArrangement: 'full-time', // WorkArrangementType
@@ -49,7 +49,10 @@ const MOCK_SINGLE_RESOURCE: Resource = {
     status: 'active',
     maxAssignments: 2,
     maxHoursPerDay: 8,
-    certifications: ['AWS Certified Developer', 'Scrum Master Certified'],
+    certifications: [
+        { id: 'cert1', name: 'AWS Certified Developer - Associate', issuingBody: 'Amazon Web Services', issueDate: '2023-03-15', expirationDate: '2026-03-15', credentialId: 'AWSCDA12345', detailsLink: 'https://aws.amazon.com/certification/certified-developer-associate/' },
+        { id: 'cert2', name: 'Certified ScrumMaster (CSM)', issuingBody: 'Scrum Alliance', issueDate: '2022-07-20', credentialId: 'CSM67890' },
+    ],
     specializations: ['Frontend Development', 'Cloud Solutions'],
 
     preferences: {
@@ -59,9 +62,9 @@ const MOCK_SINGLE_RESOURCE: Resource = {
       other: 'Enjoys mentoring junior developers',
     },
     managerId: 'MGR010',
-    historicalPerformanceMetrics: [
-        { metricName: 'Project Completion Rate', value: '95%', period: 'Q1 2024' },
-        { metricName: 'Client Satisfaction', value: '4.8/5', period: 'Q1 2024' },
+    performance: [
+        { id: 'perf1', metricName: 'Project Completion Rate', value: '95%', date: '2024-03-31', period: 'Q1 2024', notes: 'Exceeded targets for Q1 deliverables.', assessedBy: 'manager-jane-doe' },
+        { id: 'perf2', metricName: 'Client Satisfaction Score', value: '4.8/5', date: '2024-03-31', period: 'Q1 2024', notes: 'Consistently high ratings.', assessedBy: 'client-feedback-system' },
     ],
     createdAt: '2023-01-15T09:00:00Z',
     updatedAt: '2024-05-20T14:30:00Z',
@@ -190,7 +193,15 @@ const ResourceDetailPage: React.FC = () => {
                     <List dense>
                         {(resource.skills || []).map((skill, index) => (
                             <ListItem key={index} disableGutters>
-                                <ListItemText primary={skill.name} secondary={`Proficiency: ${skill.proficiency}/10, Experience: ${skill.yearsExperience} yr(s)`} />
+                                <ListItemText 
+                                    primary={skill.skillName || skill.skillId} 
+                                    secondary={
+                                        `Proficiency: ${skill.proficiency}/10 | Exp: ${skill.yearsExperience} yr(s)` +
+                                        (skill.lastUsedDate ? ` | Last Used: ${skill.lastUsedDate}` : '') +
+                                        (skill.interestLevel ? ` | Interest: ${skill.interestLevel}/5` : '') +
+                                        (skill.notes ? ` | Notes: ${skill.notes}` : '')
+                                    } 
+                                />
                             </ListItem>
                         ))}
                     </List>
@@ -199,7 +210,7 @@ const ResourceDetailPage: React.FC = () => {
                 <Typography variant="h6" gutterBottom className="mt-4">Certifications</Typography>
                 {(resource.certifications || []).length > 0 ? (
                     <Box className="flex flex-wrap gap-1">
-                        {(resource.certifications || []).map((cert, index) => <Chip key={index} label={cert} size="small" />)}
+                        {(resource.certifications || []).map((cert) => <Chip key={cert.id} label={cert.name} size="small" title={`Issued by: ${cert.issuingBody}, Issued: ${cert.issueDate}${cert.expirationDate ? ', Expires: ' + cert.expirationDate : ''}`} />)}
                     </Box>
                 ) : <Typography>No certifications listed.</Typography>}
 
@@ -265,10 +276,32 @@ const ResourceDetailPage: React.FC = () => {
                 ) : <Typography>No preferences specified.</Typography>}
             </Grid>
         </Grid>
+            {/* Performance Metrics Section */}
+            <Grid item xs={12} className="mt-4">
+                <Typography variant="h6" gutterBottom>Performance History</Typography>
+                {(resource.performance && resource.performance.length > 0) ? (
+                    <List dense>
+                        {(resource.performance).map((metric) => (
+                            <ListItem key={metric.id} disableGutters sx={{ alignItems: 'flex-start', py: 0.5 }}>
+                                <ListItemText 
+                                    primary={`${metric.metricName}: ${metric.value}`}
+                                    secondaryTypographyProps={{ component: 'div', style: { whiteSpace: 'pre-line' } }}
+                                    secondary={
+                                        `Date: ${metric.date}` +
+                                        (metric.period ? `\nPeriod: ${metric.period}` : '') +
+                                        (metric.assessedBy ? `\nAssessed By: ${metric.assessedBy}` : '') +
+                                        (metric.notes ? `\nNotes: ${metric.notes}` : '')
+                                    } 
+                                />
+                            </ListItem>
+                        ))}
+                    </List>
+                ) : <Typography>No performance history available.</Typography>}
+            </Grid>
         
         <AuditLogDisplay auditLog={resource.auditLog || []} />
         
-        {/* TODO: Add section for Historical Performance */}
+
 
         <Box className="mt-6 text-center">
             <Button component={RouterLink} to="/resources" variant="outlined">

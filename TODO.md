@@ -68,6 +68,7 @@
     - [ ] New tests needed for `updateResourceLogic` (validation against TRD schema, audit log).
     - [ ] New tests needed for `getResourceByIdLogic`, `getResourceSkillsLogic`.
 
+    - [ ] Define system for managing performance review cycles (e.g., defining start/end dates for cycles, how they reset/archive). (User requirement)
 #### 2. Frontend (React, Material UI, Tailwind CSS)
     - [x] Develop UI for creating resource profiles (PRD Line 65). (ResourceForm.tsx and CreateResourcePage.tsx created - adapt to use modals for sub-sections if appropriate, e.g., adding skills, certifications, availability exceptions - TRD Sec 2.2.5)
         - [x] Form for personal information (as per TRD `info` fields).
@@ -85,13 +86,31 @@
     - [ ] **Align frontend data models and components with TRD specifications for Resource Management.**
         - [ ] Refactor `Resource` type in `resource.types.ts` to align with TRD schema (Sec 3.2.1), including:
             - [x] Update `info` field structure.
-            - [ ] Restructure `skills` and `certifications`: nest certifications under skills, integrate with global skills catalog concept. (Requires clarification)
+            - [x] Restructure `skills` and `certifications` in `resource.types.ts`: `skills` to use `SkillEndorsement[]` (with `skillId`), `certifications` to use `Certification[]` (TRD aligned).
             - [ ] Update `availability` field structure.
             - [x] Update `rates` field structure (review for alignment).
-            - [ ] Align `performance` data representation (clarify TRD summary vs. historical array). (Requires clarification)
+            - [x] Align `performance` data representation in `resource.types.ts`: Use `PerformanceMetric[]` for an array of historical entries (TRD aligned).
             - [x] Update `preferences` field structure to be specific as per TRD.
         - [x] Update `PersonalInfoFormSection.tsx` to match TRD `info` structure. (Changes made directly in `ResourceForm.tsx`)
-        - [ ] Refactor `SkillsCertsFormSection.tsx`, `ResourceSkillModal.tsx`, and `ResourceCertificationModal.tsx` to handle nested certifications and potential global skill catalog integration.
+        - [x] Refactor `SkillsCertsFormSection.tsx`, `ResourceSkillModal.tsx`, and `ResourceCertificationModal.tsx` (TRD Alignment):
+            - [x] `SkillsCertsFormSection.tsx` (Completed):
+                - [x] Update types, props, and rendering for `SkillEndorsement[]` and `Certification[]`.
+                - [x] Align modal interactions (`ResourceSkillModal`, `ResourceCertificationModal`).
+            - [x] `ResourceSkillModal.tsx` (Completed):
+                - [x] Replace `ResourceSkillData` with `SkillEndorsement`.
+                - [x] Update props to use `SkillEndorsement`.
+                - [x] Address problematic global `Skill` import with local `GlobalSkill` interface.
+                - [x] Update state variables (proficiency, yearsExperience, add lastUsedDate, interestLevel, notes).
+                - [x] Update `useEffect` for `initialData`.
+                - [x] Update `handleSubmit` logic.
+                - [x] Update UI elements for new fields (proficiency, lastUsedDate, interestLevel, notes).
+            - [x] `ResourceCertificationModal.tsx` (Completed):
+                - [x] Update import from `CertificationDetail` to `Certification`.
+                - [x] Update props interface (`onSubmit`, `initialData`).
+                - [x] Update state variables (`issuingBody`, `detailsLink`, remove `skillsCoveredInput`).
+                - [x] Update `useEffect` for `initialData`.
+                - [x] Update `handleSubmit` logic (generate ID for new, use new fields, remove `skillsCovered`).
+                - [x] Update UI elements (labels, state linkage, remove `skillsCovered` field).
         - [ ] Update `AvailabilityFormSection.tsx` and `ResourceAvailabilityExceptionModal.tsx` to match TRD `availability` structure.
             - [x] `resource.types.ts`: Updated Availability, WorkHours, ExceptionEntry etc.
             - [x] `ResourceForm.tsx`: Updated availability state initialization.
@@ -104,7 +123,9 @@
                 - [x] Refactor Exceptions/Time Off section (use exceptions, align with ExceptionEntry).
             - [x] `ResourceAvailabilityExceptionModal.tsx`: Refactor to use ExceptionEntry (removed hoursUnavailable, updated type handling).
         - [x] Update `PreferencesFormSection.tsx` to match TRD `preferences` structure.
-        - [ ] Review and update `PerformanceFormSection.tsx` and `PerformanceMetricModal.tsx` based on clarified `performance` data representation.
+        - [x] Review and update `PerformanceFormSection.tsx` and `PerformanceMetricModal.tsx` based on clarified `performance` data representation.
+          - [x] `PerformanceFormSection.tsx`: Updated to use `PerformanceMetric[]`, aligned list rendering.
+          - [x] `PerformanceMetricModal.tsx`: Updated to use `PerformanceMetric`, added `uuid` for ID generation, updated state, form fields, and submission logic.
         - [x] Re-evaluate and update other related components (e.g., `ResourceForm.tsx`, `ResourceDetailPage.tsx`) for TRD alignment. (ResourceForm.tsx availability prop verified as OK; ResourceDetailPage.tsx mock data and rendering logic updated).
             - [x] `ResourceDetailPage.tsx`: Update MOCK_SINGLE_RESOURCE.availability to match new Availability structure (workHours, timeZone, exceptions).
             - [x] `ResourceDetailPage.tsx`: Update MOCK_SINGLE_RESOURCE.rates to include currency.

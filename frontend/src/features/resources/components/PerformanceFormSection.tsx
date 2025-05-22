@@ -3,17 +3,12 @@ import { Box, Typography, Paper, Button, List, ListItem, ListItemText, IconButto
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { HistoricalPerformanceMetric } from '../../../types/resource.types';
+import { PerformanceMetric } from '../../../types/resource.types';
 import { useModal } from '../../../contexts/ModalContext';
 
-// Augmenting with optional id for client-side list management if needed by modal
-export interface FormHistoricalPerformanceMetric extends HistoricalPerformanceMetric {
-  id?: string; 
-}
-
 interface PerformanceFormSectionProps {
-  performanceMetrics: FormHistoricalPerformanceMetric[];
-  setPerformanceMetrics: React.Dispatch<React.SetStateAction<FormHistoricalPerformanceMetric[]>>;
+  performanceMetrics: PerformanceMetric[];
+  setPerformanceMetrics: React.Dispatch<React.SetStateAction<PerformanceMetric[]>>;
 }
 
 const PerformanceFormSection: React.FC<PerformanceFormSectionProps> = ({ performanceMetrics, setPerformanceMetrics }) => {
@@ -23,10 +18,8 @@ const PerformanceFormSection: React.FC<PerformanceFormSectionProps> = ({ perform
     openModal<'performanceMetricModal'>({ // Assuming 'performanceMetricModal' will be the modalType
       modalType: 'performanceMetricModal',
       modalProps: {
-        onSubmit: (newMetric: FormHistoricalPerformanceMetric) => {
-          // Ensure newMetric has a unique ID if not provided by modal (e.g., for purely client-side additions before save)
-          const metricToAdd = { ...newMetric, id: newMetric.id || `temp-${Date.now()}` };
-          setPerformanceMetrics([...performanceMetrics, metricToAdd]);
+        onSubmit: (newMetric: PerformanceMetric) => {
+          setPerformanceMetrics([...performanceMetrics, newMetric]);
         },
       }
     });
@@ -38,7 +31,7 @@ const PerformanceFormSection: React.FC<PerformanceFormSectionProps> = ({ perform
       modalType: 'performanceMetricModal',
       modalProps: {
         initialData: metricToEdit,
-        onSubmit: (updatedMetric: FormHistoricalPerformanceMetric) => {
+        onSubmit: (updatedMetric: PerformanceMetric) => {
           const updatedList = [...performanceMetrics];
           updatedList[index] = updatedMetric;
           setPerformanceMetrics(updatedList);
@@ -67,7 +60,7 @@ const PerformanceFormSection: React.FC<PerformanceFormSectionProps> = ({ perform
         <List dense>
           {performanceMetrics.map((metric, index) => (
             <ListItem 
-              key={metric.id || index} 
+              key={metric.id} 
               sx={{ borderBottom: '1px solid #eee', mb: 1, pb: 1 }}
               secondaryAction={
                 <Box>
@@ -81,8 +74,14 @@ const PerformanceFormSection: React.FC<PerformanceFormSectionProps> = ({ perform
               }
             >
               <ListItemText 
-                primary={`${metric.metricName}: ${metric.value}`}
-                secondary={`Recorded: ${new Date(metric.dateRecorded).toLocaleDateString()} ${metric.notes ? ' | Notes: ' + metric.notes : ''}`}
+                primary={`${metric.metricName}: ${metric.rating}`}
+                secondary={
+                  `Date: ${metric.reviewDate} | Reviewer: ${metric.reviewerId || 'N/A'}` +
+                  (metric.reviewCycleId ? ` | Cycle: ${metric.reviewCycleId}` : '') +
+                  (metric.comments ? ` | Comments: ${metric.comments}` : '') +
+                  (metric.goalsSet ? ` | Goals: ${metric.goalsSet}` : '') +
+                  (metric.achievements ? ` | Achievements: ${metric.achievements}` : '')
+                }
               />
             </ListItem>
           ))}

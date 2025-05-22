@@ -1,23 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Select, MenuItem, FormControl, InputLabel, CircularProgress } from '@mui/material';
-import { Skill } from '../../../functions/src/types/skill.types'; // Assuming global skill type
+import { SkillEndorsement } from '../types/resource.types';
+// Assuming Skill type for global skills list is compatible or fetched via a service that provides { id: string, name: string }
+// For now, let's define a local simple Skill type for the dropdown.
+interface GlobalSkill { id: string; name: string; } // Define GlobalSkill locally
 import { getSkills } from '../services/skillService'; // Assuming service exists
 import { useModal } from '../contexts/ModalContext'; // For logging
 
-// Define the structure for a skill within a resource's profile
-export interface ResourceSkillData {
-  skillId: string;
-  skillName?: string; // Denormalized, for convenience
-  level: 'Beginner' | 'Intermediate' | 'Expert'; // Example levels
-  experienceYears: number;
-  // Add other fields from TRD as needed: lastUsed, certifications, notes
-}
+// ResourceSkillData is replaced by SkillEndorsement from '../types/resource.types'
 
 export interface ResourceSkillModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ResourceSkillData) => void;
-  initialData?: Partial<ResourceSkillData>;
+  onSubmit: (data: SkillEndorsement) => void;
+  initialData?: Partial<SkillEndorsement>;
   resourceId?: string; // For logging context if needed
 }
 
@@ -28,11 +24,14 @@ const ResourceSkillModal: React.FC<ResourceSkillModalProps> = ({
   initialData,
   resourceId,
 }) => {
-  const [globalSkills, setGlobalSkills] = useState<Skill[]>([]);
+  const [globalSkills, setGlobalSkills] = useState<GlobalSkill[]>([]);
   const [loadingSkills, setLoadingSkills] = useState<boolean>(true);
   const [selectedSkillId, setSelectedSkillId] = useState<string>(initialData?.skillId || '');
-  const [level, setLevel] = useState<'Beginner' | 'Intermediate' | 'Expert'>(initialData?.level || 'Beginner');
-  const [experienceYears, setExperienceYears] = useState<number>(initialData?.experienceYears || 0);
+  const [proficiency, setProficiency] = useState<number>(initialData?.proficiency || 1); 
+  const [yearsExperience, setYearsExperience] = useState<number>(initialData?.yearsExperience || 0);
+  const [lastUsedDate, setLastUsedDate] = useState<string | undefined>(initialData?.lastUsedDate);
+  const [interestLevel, setInterestLevel] = useState<number | undefined>(initialData?.interestLevel); 
+  const [notes, setNotes] = useState<string | undefined>(initialData?.notes);
   const { logModalAction } = useModal();
 
   useEffect(() => {
@@ -56,13 +55,19 @@ const ResourceSkillModal: React.FC<ResourceSkillModalProps> = ({
   useEffect(() => {
     if (initialData) {
       setSelectedSkillId(initialData.skillId || '');
-      setLevel(initialData.level || 'Beginner');
-      setExperienceYears(initialData.experienceYears || 0);
+      setProficiency(initialData.proficiency || 1);
+      setYearsExperience(initialData.yearsExperience || 0);
+      setLastUsedDate(initialData.lastUsedDate);
+      setInterestLevel(initialData.interestLevel);
+      setNotes(initialData.notes);
     } else {
       // Reset form for new entry
       setSelectedSkillId('');
-      setLevel('Beginner');
-      setExperienceYears(0);
+      setProficiency(1);
+      setYearsExperience(0);
+      setLastUsedDate(undefined);
+      setInterestLevel(undefined);
+      setNotes(undefined);
     }
   }, [initialData, isOpen]);
 
@@ -75,12 +80,21 @@ const ResourceSkillModal: React.FC<ResourceSkillModalProps> = ({
       return;
     }
     const selectedSkill = globalSkills.find(s => s.id === selectedSkillId);
-    onSubmit({
+    const submissionData: SkillEndorsement = {
       skillId: selectedSkillId,
-      skillName: selectedSkill?.name, // Denormalize name
-      level,
-      experienceYears,
-    });
+      // skillName: selectedSkill?.name, // skillName is optional in SkillEndorsement, should be set if available
+      proficiency,
+      yearsExperience,
+    };
+    if (selectedSkill?.name) submissionData.skillName = selectedSkill.name;
+    if (lastUsedDate) submissionData.lastUsedDate = lastUsedDate;
+    // Ensure interestLevel is only added if it's a valid number (0-5, assuming 0 is valid or handled by validation)
+    // Or if the scale is 1-5, then if (interestLevel !== undefined && interestLevel >= 1 && interestLevel <=5)
+    // For now, if it's defined, pass it.
+    if (interestLevel !== undefined) submissionData.interestLevel = interestLevel;
+    if (notes) submissionData.notes = notes;
+
+    onSubmit(submissionData);
     logModalAction({ action: 'SUBMIT_SUCCESS', outcome: 'Skill Added/Updated' });
     onClose();
   };
@@ -109,27 +123,67 @@ const ResourceSkillModal: React.FC<ResourceSkillModalProps> = ({
                 ))}
               </Select>
             </FormControl>
-            <FormControl fullWidth margin="normal">
-              <InputLabel id="level-select-label">Proficiency Level</InputLabel>
-              <Select
-                labelId="level-select-label"
-                value={level}
-                label="Proficiency Level"
-                onChange={(e) => setLevel(e.target.value as 'Beginner' | 'Intermediate' | 'Expert')}
-              >
-                <MenuItem value="Beginner">Beginner</MenuItem>
-                <MenuItem value="Intermediate">Intermediate</MenuItem>
-                <MenuItem value="Expert">Expert</MenuItem>
-              </Select>
-            </FormControl>
+            <TextField
+              margin="normal"
+              label="Proficiency (1-10)"
+              type="number"
+              fullWidth
+              value={proficiency}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (val >= 1 && val <= 10) setProficiency(val);
+                // else if (e.target.value === '') setProficiency(1); // Allow empty to clear, or set to default
+              }}
+              onBlur={(e) => { // Ensure a valid value on blur if empty or out of range
+                if (proficiency < 1 || proficiency > 10 || isNaN(proficiency)) setProficiency(1);
+              }}
+              InputProps={{ inputProps: { min: 1, max: 10 } }}
+              helperText="Enter a number between 1 and 10"
+            />
             <TextField
               margin="normal"
               label="Years of Experience"
               type="number"
               fullWidth
-              value={experienceYears}
-              onChange={(e) => setExperienceYears(Math.max(0, parseInt(e.target.value, 10) || 0))}
+              value={yearsExperience}
+              onChange={(e) => setYearsExperience(Math.max(0, parseInt(e.target.value, 10) || 0))}
               InputProps={{ inputProps: { min: 0 } }}
+            />
+            <TextField
+              margin="normal"
+              label="Last Used Date (Optional)"
+              type="date" // Using type="date" for better UX
+              fullWidth
+              value={lastUsedDate || ''}
+              onChange={(e) => setLastUsedDate(e.target.value || undefined)}
+              InputLabelProps={{ shrink: true }}
+            />
+            <TextField
+              margin="normal"
+              label="Interest Level (1-5, Optional)"
+              type="number"
+              fullWidth
+              value={interestLevel === undefined ? '' : interestLevel}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                if (e.target.value === '') {
+                    setInterestLevel(undefined);
+                } else if (val >= 1 && val <= 5) {
+                    setInterestLevel(val);
+                }
+              }}
+              InputProps={{ inputProps: { min: 1, max: 5 } }}
+              helperText="Enter a number between 1 and 5, or leave blank"
+            />
+            <TextField
+              margin="normal"
+              label="Notes (Optional)"
+              type="text"
+              fullWidth
+              multiline
+              rows={3}
+              value={notes || ''}
+              onChange={(e) => setNotes(e.target.value || undefined)}
             />
           </>
         )}

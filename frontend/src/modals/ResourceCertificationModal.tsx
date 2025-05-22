@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Grid } from '@mui/material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFnsV3 } from '@mui/x-date-pickers/AdapterDateFnsV3';
@@ -6,15 +7,15 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { isValid, parseISO, format } from 'date-fns';
 import { useModal } from '../contexts/ModalContext';
 
-import { CertificationDetail } from '../types/resource.types';
+import { Certification } from '../types/resource.types';
 
 // ResourceCertificationData interface removed, using CertificationDetail from resource.types.ts
 
 export interface ResourceCertificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: CertificationDetail) => void;
-  initialData?: CertificationDetail;
+  onSubmit: (data: Certification) => void;
+  initialData?: Certification;
   resourceId?: string; // For logging context
 }
 
@@ -26,12 +27,11 @@ const ResourceCertificationModal: React.FC<ResourceCertificationModalProps> = ({
   resourceId,
 }) => {
   const [name, setName] = useState('');
-  const [issuingOrganization, setIssuingOrganization] = useState('');
+  const [issuingBody, setIssuingBody] = useState('');
   const [issueDate, setIssueDate] = useState<Date | null>(null);
   const [expirationDate, setExpirationDate] = useState<Date | null>(null);
   const [credentialId, setCredentialId] = useState('');
-  const [credentialURL, setCredentialURL] = useState('');
-  const [skillsCoveredInput, setSkillsCoveredInput] = useState(''); // Comma-separated string
+  const [detailsLink, setDetailsLink] = useState('');
 
   const { logModalAction } = useModal();
 
@@ -39,42 +39,41 @@ const ResourceCertificationModal: React.FC<ResourceCertificationModalProps> = ({
     if (isOpen) {
       if (initialData) {
         setName(initialData.name || '');
-        setIssuingOrganization(initialData.issuingOrganization || '');
+        setIssuingBody(initialData.issuingBody || '');
         setIssueDate(initialData.issueDate && isValid(parseISO(initialData.issueDate)) ? parseISO(initialData.issueDate) : null);
         setExpirationDate(initialData.expirationDate && isValid(parseISO(initialData.expirationDate)) ? parseISO(initialData.expirationDate) : null);
         setCredentialId(initialData.credentialId || '');
-        setCredentialURL(initialData.credentialURL || '');
-        setSkillsCoveredInput(initialData.skillsCovered?.join(', ') || '');
+        setDetailsLink(initialData.detailsLink || '');
       } else {
         // Reset form for new entry
         setName('');
-        setIssuingOrganization('');
+        setIssuingBody('');
         setIssueDate(null);
         setExpirationDate(null);
         setCredentialId('');
-        setCredentialURL('');
-        setSkillsCoveredInput('');
+        setDetailsLink('');
       }
     }
   }, [initialData, isOpen]);
 
   const handleSubmit = () => {
-    if (!name || !issuingOrganization || !issueDate) {
-      alert('Please fill in all required fields: Name, Issuing Organization, and Issue Date.'); // Basic validation
+    if (!name || !issuingBody || !issueDate) {
+      alert('Please fill in all required fields: Name, Issuing Body, and Issue Date.'); // Basic validation
       logModalAction({ action: 'SUBMIT_FAIL', outcome: 'Validation Error', errorDetails: 'Required fields missing for certification' });
       return;
     }
-    const skillsArray = skillsCoveredInput.split(',').map(s => s.trim()).filter(s => s);
     
+    const certId = initialData?.id || uuidv4(); // Generate new ID if not editing
+
     onSubmit({
-      ...(initialData?.id && { id: initialData.id }), // Preserve ID if editing
+      id: certId,
       name,
-      issuingOrganization,
-      issueDate: format(issueDate!, 'yyyy-MM-dd'), // issueDate is non-null here due to validation
+      issuingBody, // Renamed
+      issueDate: format(issueDate!, 'yyyy-MM-dd'),
       expirationDate: expirationDate ? format(expirationDate, 'yyyy-MM-dd') : undefined,
       credentialId: credentialId || undefined,
-      credentialURL: credentialURL || undefined,
-      skillsCovered: skillsArray.length > 0 ? skillsArray : undefined,
+      detailsLink: detailsLink || undefined, // Renamed
+      // skillsCovered removed
     });
     logModalAction({ action: 'SUBMIT_SUCCESS', outcome: 'Certification Added/Updated' });
     onClose();
@@ -100,10 +99,10 @@ const ResourceCertificationModal: React.FC<ResourceCertificationModalProps> = ({
             </Grid>
             <Grid item xs={12}>
               <TextField
-                label="Issuing Organization"
+                label="Issuing Body"
                 fullWidth
-                value={issuingOrganization}
-                onChange={(e) => setIssuingOrganization(e.target.value)}
+                value={issuingBody}
+                onChange={(e) => setIssuingBody(e.target.value)}
                 required
                 margin="dense"
               />
@@ -144,20 +143,10 @@ const ResourceCertificationModal: React.FC<ResourceCertificationModalProps> = ({
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                label="Credential URL (Optional)"
+                label="Details Link (Optional)"
                 fullWidth
-                value={credentialURL}
-                onChange={(e) => setCredentialURL(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Skills Covered (Optional, comma-separated)"
-                fullWidth
-                value={skillsCoveredInput}
-                onChange={(e) => setSkillsCoveredInput(e.target.value)}
-                helperText="e.g., Project Management, Agile Methodology"
+                value={detailsLink}
+                onChange={(e) => setDetailsLink(e.target.value)}
                 margin="dense"
               />
             </Grid>
