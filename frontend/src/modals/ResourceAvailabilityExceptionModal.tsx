@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Grid, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFnsV3 } from '@mui/x-date-pickers/AdapterDateFnsV3';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { isValid, parseISO, format, isAfter } from 'date-fns'; // Added isAfter
 import { useModal } from '../contexts/ModalContext';
 
 // As per TRD Sec 3.2.1 (Resources collection, availability.exceptions)
@@ -30,8 +34,8 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
   initialData,
   resourceId,
 }) => {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [type, setType] = useState<AvailabilityExceptionType>('Vacation');
   const [description, setDescription] = useState('');
   const [hoursUnavailable, setHoursUnavailable] = useState<string>(''); // Store as string for TextField
@@ -41,15 +45,15 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
   useEffect(() => {
     if (isOpen) {
       if (initialData) {
-        setStartDate(initialData.startDate || '');
-        setEndDate(initialData.endDate || '');
+        setStartDate(initialData.startDate && isValid(parseISO(initialData.startDate)) ? parseISO(initialData.startDate) : null);
+        setEndDate(initialData.endDate && isValid(parseISO(initialData.endDate)) ? parseISO(initialData.endDate) : null);
         setType(initialData.type || 'Vacation');
         setDescription(initialData.description || '');
         setHoursUnavailable(initialData.hoursUnavailable?.toString() || '');
       } else {
         // Reset form
-        setStartDate('');
-        setEndDate('');
+        setStartDate(null);
+        setEndDate(null);
         setType('Vacation');
         setDescription('');
         setHoursUnavailable('');
@@ -63,7 +67,7 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
       logModalAction({ action: 'SUBMIT_FAIL', outcome: 'Validation Error', errorDetails: 'Required fields missing for availability exception' });
       return;
     }
-    if (new Date(startDate) > new Date(endDate)) {
+    if (startDate && endDate && isAfter(startDate, endDate)) {
         alert('Start Date cannot be after End Date.');
         logModalAction({ action: 'SUBMIT_FAIL', outcome: 'Validation Error', errorDetails: 'Start Date after End Date' });
         return;
@@ -78,8 +82,8 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
 
     onSubmit({
       ...(initialData?.id && { id: initialData.id }),
-      startDate,
-      endDate,
+      startDate: format(startDate!, 'yyyy-MM-dd'), // startDate is non-null here due to validation
+      endDate: format(endDate!, 'yyyy-MM-dd'),   // endDate is non-null here due to validation
       type,
       description: description || undefined,
       hoursUnavailable: hours,
@@ -90,84 +94,86 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
 
   return (
     <Dialog open={isOpen} onClose={onClose} aria-labelledby="resource-availability-exception-dialog-title" maxWidth="sm" fullWidth>
-      <DialogTitle id="resource-availability-exception-dialog-title">
-        {initialData?.id ? 'Edit Availability Exception' : 'Add Availability Exception'}
-      </DialogTitle>
-      <DialogContent sx={{ paddingTop: '16px !important' }}>
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Start Date"
-              type="date"
-              fullWidth
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-              InputLabelProps={{ shrink: true }}
-              margin="dense"
-              // TODO: Consider replacing with @mui/x-date-pickers
-            />
+      <LocalizationProvider dateAdapter={AdapterDateFnsV3}>
+        <DialogTitle id="resource-availability-exception-dialog-title">
+          {initialData?.id ? 'Edit Availability Exception' : 'Add Availability Exception'}
+        </DialogTitle>
+        <DialogContent sx={{ paddingTop: '16px !important' }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <DatePicker
+                label="Start Date"
+                value={startDate}
+                onChange={(newValue) => setStartDate(newValue)}
+                slotProps={{ textField: { 
+                  fullWidth: true, 
+                  margin: "dense", 
+                  required: true,
+                  helperText: " ",
+                } }}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <DatePicker
+                label="End Date"
+                value={endDate}
+                onChange={(newValue) => setEndDate(newValue)}
+                slotProps={{ textField: { 
+                  fullWidth: true, 
+                  margin: "dense", 
+                  required: true,
+                  helperText: " ",
+                } }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <FormControl fullWidth margin="dense" required>
+                <InputLabel id="exception-type-label">Type</InputLabel>
+                <Select
+                  labelId="exception-type-label"
+                  value={type}
+                  label="Type"
+                  onChange={(e) => setType(e.target.value as AvailabilityExceptionType)}
+                >
+                  {AvailabilityExceptionTypes.map((exceptionType) => (
+                    <MenuItem key={exceptionType} value={exceptionType}>
+                      {exceptionType}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Description (Optional)"
+                fullWidth
+                multiline
+                rows={2}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                margin="dense"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Hours Unavailable (Optional, for partial day)"
+                type="number"
+                fullWidth
+                value={hoursUnavailable}
+                onChange={(e) => setHoursUnavailable(e.target.value)}
+                InputProps={{ inputProps: { min: 0, step: "0.5" } }}
+                margin="dense"
+              />
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="End Date"
-              type="date"
-              fullWidth
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              InputLabelProps={{ shrink: true }}
-              margin="dense"
-              // TODO: Consider replacing with @mui/x-date-pickers
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <FormControl fullWidth margin="dense" required>
-              <InputLabel id="exception-type-label">Type</InputLabel>
-              <Select
-                labelId="exception-type-label"
-                value={type}
-                label="Type"
-                onChange={(e) => setType(e.target.value as AvailabilityExceptionType)}
-              >
-                {AvailabilityExceptionTypes.map((exceptionType) => (
-                  <MenuItem key={exceptionType} value={exceptionType}>
-                    {exceptionType}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Description (Optional)"
-              fullWidth
-              multiline
-              rows={2}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              margin="dense"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              label="Hours Unavailable (Optional, for partial day)"
-              type="number"
-              fullWidth
-              value={hoursUnavailable}
-              onChange={(e) => setHoursUnavailable(e.target.value)}
-              InputProps={{ inputProps: { min: 0, step: "0.5" } }}
-              margin="dense"
-            />
-          </Grid>
-        </Grid>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={() => { logModalAction({ action: 'CLOSE', outcome: 'CANCELLED' }); onClose(); }}>Cancel</Button>
-        <Button onClick={handleSubmit} color="primary">
-          {initialData?.id ? 'Save Changes' : 'Add Exception'}
-        </Button>
-      </DialogActions>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { logModalAction({ action: 'CLOSE', outcome: 'CANCELLED' }); onClose(); }}>Cancel</Button>
+          <Button onClick={handleSubmit} color="primary">
+            {initialData?.id ? 'Save Changes' : 'Add Exception'}
+          </Button>
+        </DialogActions>
+      </LocalizationProvider>
     </Dialog>
   );
 };

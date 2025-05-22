@@ -81,6 +81,8 @@
     - [x] Develop UI for viewing audit history of profile changes. (AuditLogDisplay.tsx created, integrated with mock data)
     - [ ] Implement API service calls from frontend to backend for all Resource Profile Management features, ensuring all TRD fields are handled.
     - [x] Develop standard modals for resource sub-tasks (e.g., add/edit skill, add/edit certification, manage availability exceptions) (TRD Sec 2.2.5). (Implemented `ResourceSkillModal`, `ResourceCertificationModal`, `ResourceAvailabilityExceptionModal`)
+        - [x] Update `ResourceCertificationModal.tsx` to use MUI X DatePicker.
+        - [x] Update `ResourceAvailabilityExceptionModal.tsx` to use MUI X DatePicker.
 
 #### 3. Testing
     - [~] Unit tests for backend resource management logic (Cloud Functions). (Jest setup complete. `createResourceLogic` validation error tests PASSING. `createResourceLogic` success test FAILING due to `firebase-admin` initializeApp mock issue. Other function tests PENDING - expand to cover all TRD fields and logic).
