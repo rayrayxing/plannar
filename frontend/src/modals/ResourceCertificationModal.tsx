@@ -2,23 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Dialog, DialogActions, DialogContent, DialogTitle, Button, TextField, Grid } from '@mui/material';
 import { useModal } from '../contexts/ModalContext';
 
-// As per TRD Sec 3.2.1 (Resources collection, info.certifications)
-export interface ResourceCertificationData {
-  id?: string; // For editing existing certs, could be an array index or unique ID if stored separately
-  name: string;
-  issuingOrganization: string;
-  issueDate: string; // YYYY-MM-DD for TextField type="date"
-  expirationDate?: string; // YYYY-MM-DD
-  credentialId?: string;
-  credentialURL?: string;
-  skillsCovered?: string[]; // Stored as array, input as comma-separated string for simplicity
-}
+import { CertificationDetail } from '../types/resource.types';
+
+// ResourceCertificationData interface removed, using CertificationDetail from resource.types.ts
 
 export interface ResourceCertificationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ResourceCertificationData) => void;
-  initialData?: ResourceCertificationData;
+  onSubmit: (data: CertificationDetail) => void;
+  initialData?: CertificationDetail;
   resourceId?: string; // For logging context
 }
 

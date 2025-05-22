@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TextField, Button, Box, Typography, Grid, Paper, MenuItem, Select, InputLabel, FormControl, Chip, Rating } from '@mui/material';
-import { Resource, PersonalInfo, Skill, Availability, WorkArrangement, TimeOffEntry, Rates, ResourceStatus } from '../../../types/resource.types';
+import { Resource, PersonalInfo, Skill, Availability, WorkArrangement, TimeOffEntry, Rates, ResourceStatus, CertificationDetail } from '../../../types/resource.types';
 
 import SkillsCertsFormSection from './SkillsCertsFormSection';
 import AvailabilityFormSection from './AvailabilityFormSection';
@@ -21,7 +21,7 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUp
   const [status, setStatus] = useState<ResourceStatus>(initialData?.status || 'active');
   const [maxAssignments, setMaxAssignments] = useState<number>(initialData?.maxAssignments || 2);
   const [maxHoursPerDay, setMaxHoursPerDay] = useState<number>(initialData?.maxHoursPerDay || 14);
-  const [certifications, setCertifications] = useState<string[]>(initialData?.certifications || []);
+  const [certifications, setCertifications] = useState<CertificationDetail[]>(initialData?.certifications || []);
   const [specializations, setSpecializations] = useState<string[]>(initialData?.specializations || []);
   // historicalPerformanceMetrics will likely be managed elsewhere or through a different interface
 

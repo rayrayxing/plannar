@@ -12,6 +12,17 @@ export interface Skill {
   certifications?: string[]; // List of relevant certification names or IDs
 }
 
+export interface CertificationDetail {
+  id?: string; // Optional: client-side ID for list management during editing
+  name: string;
+  issuingOrganization: string;
+  issueDate: string; // Should be stored/handled as ISO date string
+  expirationDate?: string; // Optional, ISO date string
+  credentialId?: string; // Optional
+  credentialURL?: string; // Optional
+  skillsCovered?: string[]; // Optional array of skill names or IDs
+}
+
 export interface WorkArrangement {
   type: 'full-time' | 'part-time' | 'contractor' | 'custom'; // Expanded from PRD
   standardHours?: { // Applicable for full-time, part-time
@@ -79,7 +90,7 @@ export interface Resource {
   maxAssignments: number; // Default: 2 (PRD Line 239)
   maxHoursPerDay: number; // Default: 14 (PRD Line 240)
   status: ResourceStatus; // active, onboarding, offboarding (PRD Line 241)
-  certifications?: string[]; // General certifications not tied to a specific skill (PRD Line 61)
+  certifications?: CertificationDetail[]; // General certifications (TRD Sec 3.2.1)
   specializations?: string[]; // General specializations
   historicalPerformanceMetrics?: HistoricalPerformanceMetric[]; // (PRD Line 62)
   auditLog?: AuditLogEntry[]; // (PRD Line 69)
