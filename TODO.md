@@ -185,7 +185,7 @@
                 - [/] Ensure responsive design. (MUI Grid `xs`/`md` used; visual check pending)
                 - [x] Add "Edit" button linking to the resource edit page/form. (Already present)
                 - [x] Add "Back to List" button. (Already present)
-        - [ ] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
+        - [/] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
             - [x] Fetch list of resources using API call (replace mock data).
             - [/] Implement filtering (by status, skills, etc.). (Client-side filtering for name, email, status, skill name implemented and fixed; more filters pending as per inline TODO)
             - [x] Implement sorting:
