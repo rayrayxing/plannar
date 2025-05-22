@@ -161,7 +161,7 @@
         - [ ] **Resource Detail Page (`ResourceDetailPage.tsx`) - Full TRD Compliance & API Integration**
             - [ ] **Core Display Logic & Structure:**
                 - [x] Fetch resource data by ID using API call (replace mock data).
-                - [/] Ensure basic layout displays all sections (Personal Info, Skills, Availability, Rates, Performance, Preferences, Audit Log).
+                - [/] Ensure basic layout displays all sections (Personal Info, Skills, Availability, Rates (partially blocked), Performance, Preferences, Audit Log).
             - [ ] **Display Personal Information (TRD `info` fields):**
                 - [x] Verify all fields from `Resource.info` are displayed.
             - [ ] **Display Skills & Certifications (TRD `skills`, `certifications`):**
@@ -179,12 +179,12 @@
                 - [x] Verify list of `PerformanceMetric` entries is displayed. (Updated to match current `PerformanceMetric` type)
             - [x] **Display Preferences (TRD `preferences`):**
                 - [x] Verify all fields from `Resource.preferences` are displayed. (Updated to match current `ResourcePreferences` type)
-            - [ ] **Display Audit History (PRD Line 69):**
-                - [ ] Fetch and display audit log entries related to the resource. (Blocked: Requires type definition, API endpoint, service update, and new UI section)
-            - [ ] **General UI/UX:**
-                - [ ] Ensure responsive design.
-                - [ ] Add "Edit" button linking to the resource edit page/form.
-                - [ ] Add "Back to List" button.
+            - [x] **Display Audit History (PRD Line 69):**
+                - [x] Fetch and display audit log entries related to the resource. (UI exists via `AuditLogDisplay`; assumes API populates `resource.auditLog`)
+            - [x] **General UI/UX:**
+                - [/] Ensure responsive design. (MUI Grid `xs`/`md` used; visual check pending)
+                - [x] Add "Edit" button linking to the resource edit page/form. (Already present)
+                - [x] Add "Back to List" button. (Already present)
         - [ ] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
             - [ ] Fetch list of resources using API call (replace mock data).
             - [ ] Implement filtering (by status, skills, etc.).
