@@ -1,8 +1,15 @@
 export interface PersonalInfo {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string; // Should be unique
   phone?: string;
   employeeId: string; // Should be unique
+  title?: string;
+  department?: string;
+  location?: string;
+  startDate?: string; // ISO Date string
+  endDate?: string; // ISO Date string, optional
+  employmentStatus?: string; // e.g., Active, Onboarding, Departing (from TRD info.status)
 }
 
 export interface Skill {
@@ -23,36 +30,39 @@ export interface CertificationDetail {
   skillsCovered?: string[]; // Optional array of skill names or IDs
 }
 
-export interface WorkArrangement {
-  type: 'full-time' | 'part-time' | 'contractor' | 'custom'; // Expanded from PRD
-  standardHours?: { // Applicable for full-time, part-time
-    monday: { start?: string; end?: string; active: boolean };
-    tuesday: { start?: string; end?: string; active: boolean };
-    wednesday: { start?: string; end?: string; active: boolean };
-    thursday: { start?: string; end?: string; active: boolean };
-    friday: { start?: string; end?: string; active: boolean };
-    saturday: { start?: string; end?: string; active: boolean };
-    sunday: { start?: string; end?: string; active: boolean };
-  };
-  // PRD's customSchedule array can be represented by making standardHours flexible
-  // Or, if truly ad-hoc per day and overriding standard, a separate field might be needed.
-  // For now, assuming 'custom' type implies flexible standardHours, or specific overrides are handled in 'timeOff' or 'assignments'.
-  hoursPerWeek?: number; // For part-time or to specify for contractors
+export interface DayWorkHours {
+  start?: string; // HH:MM
+  end?: string; // HH:MM
+  active: boolean;
 }
 
-export interface TimeOffEntry {
-  id: string; // Unique ID for the time off entry
+export interface WorkHours {
+  monday: DayWorkHours;
+  tuesday: DayWorkHours;
+  wednesday: DayWorkHours;
+  thursday: DayWorkHours;
+  friday: DayWorkHours;
+  saturday: DayWorkHours;
+  sunday: DayWorkHours;
+}
+
+export type ExceptionEntryType = "PTO" | "Sick Leave" | "Holiday" | "Project Assignment" | "Training" | "Other";
+
+export interface ExceptionEntry {
+  id: string;
   startDate: string; // ISO Date string or Timestamp
   endDate: string; // ISO Date string or Timestamp
-  reason?: string;
-  status: 'pending' | 'approved' | 'rejected';
-  requestedAt: string; // Timestamp
-  approvedBy?: string; // User ID of approver
+  type: ExceptionEntryType;
+  description?: string;
 }
 
+export type WorkArrangementType = "full-time" | "part-time" | "contractor" | "intern";
+
 export interface Availability {
-  workArrangement: WorkArrangement;
-  timeOff: TimeOffEntry[];
+  workHours?: WorkHours;
+  timeZone?: string; // e.g., "America/New_York"
+  workArrangement: WorkArrangementType;
+  exceptions?: ExceptionEntry[];
   // Real-time availability will also be derived from 'schedules' collection later
 }
 
@@ -60,7 +70,7 @@ export interface Rates {
   standard: number; // Hourly rate
   overtime?: number; // Hourly rate for overtime
   weekend?: number; // Hourly rate for weekend
-  // Access control for these fields will be managed at the API/Firestore rules level
+  currency?: string; // e.g., "USD", "EUR"
 }
 
 export interface HistoricalPerformanceMetric {
@@ -80,13 +90,18 @@ export interface AuditLogEntry {
 }
 
 
+export interface NotificationPreferencesType {
+  email?: boolean;
+  inApp?: boolean;
+  sms?: boolean;
+}
+
+
 export interface ResourcePreferences {
-  preferredProjectTypes?: string[];
-  preferredWorkHours?: string; // e.g., "flexible", "9-5", "early bird", "night owl"
-  communicationStyle?: string; // e.g., "Prefers Slack over Email", "Daily stand-ups preferred"
-  workLocation?: 'remote' | 'office' | 'hybrid';
-  travelPreference?: 'none' | 'occasional' | 'frequent';
-  otherNotes?: string; // General notes about work preferences
+  preferredProjects?: string[];
+  preferredRoles?: string[];
+  developmentGoals?: string[];
+  notificationPreferences?: NotificationPreferencesType;
 }
 
 export type ResourceStatus = 'active' | 'onboarding' | 'offboarding' | 'on-leave' | 'pending-hire';

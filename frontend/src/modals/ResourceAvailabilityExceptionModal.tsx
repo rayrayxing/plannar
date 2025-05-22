@@ -5,25 +5,25 @@ import { AdapterDateFnsV3 } from '@mui/x-date-pickers/AdapterDateFnsV3';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { isValid, parseISO, format, isAfter } from 'date-fns'; // Added isAfter
 import { useModal } from '../contexts/ModalContext';
+import { ExceptionEntry, ExceptionEntryType } from '../../types/resource.types';
 
 // As per TRD Sec 3.2.1 (Resources collection, availability.exceptions)
-export const AvailabilityExceptionTypes = ["Vacation", "Public Holiday", "Training", "Unavailable", "Other"] as const;
-export type AvailabilityExceptionType = typeof AvailabilityExceptionTypes[number];
+// export const AvailabilityExceptionTypes = ["Vacation", "Public Holiday", "Training", "Unavailable", "Other"] as const; // Removed
+// export type AvailabilityExceptionType = typeof AvailabilityExceptionTypes[number]; // Removed
 
-export interface ResourceAvailabilityExceptionData {
-  id?: string; // For editing
-  startDate: string; // YYYY-MM-DD
-  endDate: string; // YYYY-MM-DD
-  type: AvailabilityExceptionType;
-  description?: string;
-  hoursUnavailable?: number; // Optional, for partial day
-}
+// export interface ResourceAvailabilityExceptionData { // Removed, using ExceptionEntry directly
+//   id?: string; // For editing
+//   startDate: string; // YYYY-MM-DD
+//   endDate: string; // YYYY-MM-DD
+//   type: ExceptionEntryType;
+//   description?: string;
+// }
 
 export interface ResourceAvailabilityExceptionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: ResourceAvailabilityExceptionData) => void;
-  initialData?: ResourceAvailabilityExceptionData;
+  onSubmit: (data: ExceptionEntry) => void;
+  initialData?: ExceptionEntry;
   resourceId?: string; // For logging context
 }
 
@@ -36,9 +36,8 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
 }) => {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
-  const [type, setType] = useState<AvailabilityExceptionType>('Vacation');
+  const [type, setType] = useState<ExceptionEntryType>('vacation'); // Changed type and default
   const [description, setDescription] = useState('');
-  const [hoursUnavailable, setHoursUnavailable] = useState<string>(''); // Store as string for TextField
 
   const { logModalAction } = useModal();
 
@@ -47,16 +46,16 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
       if (initialData) {
         setStartDate(initialData.startDate && isValid(parseISO(initialData.startDate)) ? parseISO(initialData.startDate) : null);
         setEndDate(initialData.endDate && isValid(parseISO(initialData.endDate)) ? parseISO(initialData.endDate) : null);
-        setType(initialData.type || 'Vacation');
+        setType(initialData.type || 'vacation'); // Changed default
         setDescription(initialData.description || '');
-        setHoursUnavailable(initialData.hoursUnavailable?.toString() || '');
+        // setHoursUnavailable(initialData.hoursUnavailable?.toString() || ''); // Removed
       } else {
         // Reset form
         setStartDate(null);
         setEndDate(null);
-        setType('Vacation');
+        setType('vacation'); // Changed default
         setDescription('');
-        setHoursUnavailable('');
+        // setHoursUnavailable(''); // Removed
       }
     }
   }, [initialData, isOpen]);
@@ -73,12 +72,12 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
         return;
     }
 
-    const hours = hoursUnavailable ? parseFloat(hoursUnavailable) : undefined;
-    if (hoursUnavailable && (isNaN(hours!) || hours! <= 0 || hours! > 24)) {
-        alert('Hours Unavailable must be a positive number, not exceeding 24.');
-        logModalAction({ action: 'SUBMIT_FAIL', outcome: 'Validation Error', errorDetails: 'Invalid hoursUnavailable value' });
-        return;
-    }
+    // const hours = hoursUnavailable ? parseFloat(hoursUnavailable) : undefined; // Removed
+    // if (hoursUnavailable && (isNaN(hours!) || hours! <= 0 || hours! > 24)) { // Removed
+    //     alert('Hours Unavailable must be a positive number, not exceeding 24.'); // Removed
+    //     logModalAction({ action: 'SUBMIT_FAIL', outcome: 'Validation Error', errorDetails: 'Invalid hoursUnavailable value' }); // Removed
+    //     return; // Removed
+    // } // Removed
 
     onSubmit({
       ...(initialData?.id && { id: initialData.id }),
@@ -86,11 +85,19 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
       endDate: format(endDate!, 'yyyy-MM-dd'),   // endDate is non-null here due to validation
       type,
       description: description || undefined,
-      hoursUnavailable: hours,
+      // hoursUnavailable: hours, // Removed
     });
     logModalAction({ action: 'SUBMIT_SUCCESS', outcome: 'Availability Exception Added/Updated' });
     onClose();
   };
+
+  const exceptionTypeOptions: { value: ExceptionEntryType; label: string }[] = [
+    { value: 'vacation', label: 'Vacation' },
+    { value: 'sick-leave', label: 'Sick Leave' },
+    { value: 'public-holiday', label: 'Public Holiday' },
+    { value: 'other', label: 'Other' },
+  ];
+
 
   return (
     <Dialog open={isOpen} onClose={onClose} aria-labelledby="resource-availability-exception-dialog-title" maxWidth="sm" fullWidth>
@@ -133,11 +140,11 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
                   labelId="exception-type-label"
                   value={type}
                   label="Type"
-                  onChange={(e) => setType(e.target.value as AvailabilityExceptionType)}
+                  onChange={(e) => setType(e.target.value as ExceptionEntryType)}
                 >
-                  {AvailabilityExceptionTypes.map((exceptionType) => (
-                    <MenuItem key={exceptionType} value={exceptionType}>
-                      {exceptionType}
+                  {exceptionTypeOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>
@@ -154,7 +161,7 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
                 margin="dense"
               />
             </Grid>
-            <Grid item xs={12} sm={6}>
+            {/* <Grid item xs={12} sm={6}> // Removed hoursUnavailable field
               <TextField
                 label="Hours Unavailable (Optional, for partial day)"
                 type="number"
@@ -164,7 +171,7 @@ const ResourceAvailabilityExceptionModal: React.FC<ResourceAvailabilityException
                 InputProps={{ inputProps: { min: 0, step: "0.5" } }}
                 margin="dense"
               />
-            </Grid>
+            </Grid> */}
           </Grid>
         </DialogContent>
         <DialogActions>

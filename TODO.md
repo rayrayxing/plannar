@@ -81,6 +81,38 @@
         - [x] Create `PerformanceFormSection.tsx` for historical performance metrics UI.
         - [x] Design and implement `PerformanceMetricModal.tsx` for adding/editing performance entries.
         - [x] Integrate `PerformanceFormSection.tsx` (with modal) into `ResourceForm.tsx` and update state.
+
+    - [ ] **Align frontend data models and components with TRD specifications for Resource Management.**
+        - [ ] Refactor `Resource` type in `resource.types.ts` to align with TRD schema (Sec 3.2.1), including:
+            - [x] Update `info` field structure.
+            - [ ] Restructure `skills` and `certifications`: nest certifications under skills, integrate with global skills catalog concept. (Requires clarification)
+            - [ ] Update `availability` field structure.
+            - [x] Update `rates` field structure (review for alignment).
+            - [ ] Align `performance` data representation (clarify TRD summary vs. historical array). (Requires clarification)
+            - [x] Update `preferences` field structure to be specific as per TRD.
+        - [x] Update `PersonalInfoFormSection.tsx` to match TRD `info` structure. (Changes made directly in `ResourceForm.tsx`)
+        - [ ] Refactor `SkillsCertsFormSection.tsx`, `ResourceSkillModal.tsx`, and `ResourceCertificationModal.tsx` to handle nested certifications and potential global skill catalog integration.
+        - [ ] Update `AvailabilityFormSection.tsx` and `ResourceAvailabilityExceptionModal.tsx` to match TRD `availability` structure.
+            - [x] `resource.types.ts`: Updated Availability, WorkHours, ExceptionEntry etc.
+            - [x] `ResourceForm.tsx`: Updated availability state initialization.
+            - [ ] `AvailabilityFormSection.tsx`:
+                - [x] Update imports, state destructuring, daysOfWeek type.
+                - [x] Update Work Arrangement Type Select and add Time Zone field.
+                - [x] Refactor handleWorkArrangementTypeChange.
+                - [x] Refactor handleDayHoursChange (use start/end, remove hours field).
+                - [x] Refactor Standard Hours UI (use workHours, start/end, remove hours field, adjust conditional rendering).
+                - [x] Refactor Exceptions/Time Off section (use exceptions, align with ExceptionEntry).
+            - [x] `ResourceAvailabilityExceptionModal.tsx`: Refactor to use ExceptionEntry (removed hoursUnavailable, updated type handling).
+        - [x] Update `PreferencesFormSection.tsx` to match TRD `preferences` structure.
+        - [ ] Review and update `PerformanceFormSection.tsx` and `PerformanceMetricModal.tsx` based on clarified `performance` data representation.
+        - [x] Re-evaluate and update other related components (e.g., `ResourceForm.tsx`, `ResourceDetailPage.tsx`) for TRD alignment. (ResourceForm.tsx availability prop verified as OK; ResourceDetailPage.tsx mock data and rendering logic updated).
+            - [x] `ResourceDetailPage.tsx`: Update MOCK_SINGLE_RESOURCE.availability to match new Availability structure (workHours, timeZone, exceptions).
+            - [x] `ResourceDetailPage.tsx`: Update MOCK_SINGLE_RESOURCE.rates to include currency.
+            - [x] `ResourceDetailPage.tsx`: Add `preferences` field to MOCK_SINGLE_RESOURCE with sample data.
+            - [x] `ResourceDetailPage.tsx`: Update rendering logic for `personalInfo` to use new fields.
+            - [x] `ResourceDetailPage.tsx`: Update rendering logic for `availability` (workArrangement, workHours, timeZone, exceptions).
+            - [x] `ResourceDetailPage.tsx`: Update rendering logic for `rates` to include `currency`.
+            - [x] `ResourceDetailPage.tsx`: Add new section to display `ResourcePreferences`.
     - [/] Develop UI for viewing and listing resource profiles (with filtering options - PRD Line 341). (Initial components ResourceCard.tsx, ResourceListPage.tsx, ResourceDetailPage.tsx created with mock data. API integration, full detail view as per TRD schema, and advanced filtering pending)
     - [/] Develop UI for updating resource profiles. (Initial UpdateResourcePage.tsx reusing ResourceForm.tsx. API integration pending; adapt to use modals as appropriate).
     - [x] Develop UI for viewing resource skills. (Covered by ResourceDetailPage.tsx - ensure all TRD skill fields shown).

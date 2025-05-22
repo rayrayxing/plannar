@@ -1,6 +1,6 @@
 import React from 'react';
-import { TextField, Grid, Paper, Typography, Select, MenuItem, InputLabel, FormControl, Chip, Box } from '@mui/material';
-import { ResourcePreferences } from '../../../types/resource.types';
+import { TextField, Grid, Paper, Typography, Checkbox, FormControlLabel, FormControl, InputLabel, MenuItem, Select, Box, Chip } from '@mui/material'; // Added Checkbox, FormControlLabel, reordered for consistency
+import { ResourcePreferences, NotificationPreferencesType } from '../../../types/resource.types';
 
 interface PreferencesFormSectionProps {
   preferences: ResourcePreferences;
@@ -9,15 +9,19 @@ interface PreferencesFormSectionProps {
 
 const PreferencesFormSection: React.FC<PreferencesFormSectionProps> = ({ preferences, onPreferencesChange }) => {
 
-  const handleChange = (field: keyof ResourcePreferences, value: any) => {
-    onPreferencesChange({ ...preferences, [field]: value });
+  const handleStringArrayChange = (field: 'preferredProjects' | 'preferredRoles' | 'developmentGoals', value: string) => {
+    const itemsArray = value.split(',').map(item => item.trim()).filter(item => item);
+    onPreferencesChange({ ...preferences, [field]: itemsArray.length > 0 ? itemsArray : undefined });
   };
 
-  // Helper for string array fields like preferredProjectTypes
-  const handleProjectTypesChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const typesArray = value.split(',').map(type => type.trim()).filter(type => type);
-    onPreferencesChange({ ...preferences, preferredProjectTypes: typesArray.length > 0 ? typesArray : undefined });
+  const handleNotificationChange = (field: keyof NotificationPreferencesType, checked: boolean) => {
+    onPreferencesChange({
+      ...preferences,
+      notificationPreferences: {
+        ...(preferences.notificationPreferences || {}), // Ensure notificationPreferences object exists
+        [field]: checked,
+      },
+    });
   };
 
   return (
@@ -28,80 +32,81 @@ const PreferencesFormSection: React.FC<PreferencesFormSectionProps> = ({ prefere
       <Grid container spacing={2}>
         <Grid item xs={12}>
           <TextField
-            label="Preferred Project Types (comma-separated)"
+            label="Preferred Projects (comma-separated)"
             fullWidth
-            value={preferences.preferredProjectTypes?.join(', ') || ''}
-            onChange={handleProjectTypesChange}
+            value={preferences.preferredProjects?.join(', ') || ''}
+            onChange={(e) => handleStringArrayChange('preferredProjects', e.target.value)}
             variant="outlined"
             size="small"
-            helperText="e.g., Web Development, Mobile Apps, Data Analysis"
+            helperText="e.g., Project Alpha, Internal Tools, Client X Integration"
           />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Preferred Work Hours"
-            fullWidth
-            value={preferences.preferredWorkHours || ''}
-            onChange={(e) => handleChange('preferredWorkHours', e.target.value || undefined)}
-            variant="outlined"
-            size="small"
-            helperText="e.g., Flexible, 9am-5pm, Early Bird"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <TextField
-            label="Communication Style/Preferences"
-            fullWidth
-            value={preferences.communicationStyle || ''}
-            onChange={(e) => handleChange('communicationStyle', e.target.value || undefined)}
-            variant="outlined"
-            size="small"
-            helperText="e.g., Prefers Slack over Email, Daily stand-ups"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="work-location-label">Work Location Preference</InputLabel>
-            <Select
-              labelId="work-location-label"
-              label="Work Location Preference"
-              value={preferences.workLocation || ''}
-              onChange={(e) => handleChange('workLocation', e.target.value || undefined)}
-            >
-              <MenuItem value=""><em>None Specified</em></MenuItem>
-              <MenuItem value="remote">Remote</MenuItem>
-              <MenuItem value="office">Office</MenuItem>
-              <MenuItem value="hybrid">Hybrid</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={6}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="travel-preference-label">Travel Preference</InputLabel>
-            <Select
-              labelId="travel-preference-label"
-              label="Travel Preference"
-              value={preferences.travelPreference || ''}
-              onChange={(e) => handleChange('travelPreference', e.target.value || undefined)}
-            >
-              <MenuItem value=""><em>None Specified</em></MenuItem>
-              <MenuItem value="none">None</MenuItem>
-              <MenuItem value="occasional">Occasional</MenuItem>
-              <MenuItem value="frequent">Frequent</MenuItem>
-            </Select>
-          </FormControl>
         </Grid>
         <Grid item xs={12}>
           <TextField
-            label="Other Preference Notes"
+            label="Preferred Roles (comma-separated)"
             fullWidth
-            multiline
-            rows={3}
-            value={preferences.otherNotes || ''}
-            onChange={(e) => handleChange('otherNotes', e.target.value || undefined)}
+            value={preferences.preferredRoles?.join(', ') || ''}
+            onChange={(e) => handleStringArrayChange('preferredRoles', e.target.value)}
             variant="outlined"
             size="small"
+            helperText="e.g., Frontend Lead, Backend Developer, QA Engineer"
           />
+        </Grid>
+        <Grid item xs={12}>
+          <TextField
+            label="Development Goals (comma-separated)"
+            fullWidth
+            value={preferences.developmentGoals?.join(', ') || ''}
+            onChange={(e) => handleStringArrayChange('developmentGoals', e.target.value)}
+            variant="outlined"
+            size="small"
+            helperText="e.g., Learn Kubernetes, Improve public speaking, Master new JS framework"
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant="subtitle1" gutterBottom sx={{ mt: 1, mb: 1 }}>
+            Notification Preferences
+          </Typography>
+          <FormControl component="fieldset">
+            <Grid container spacing={1}>
+              <Grid item xs={12} sm={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={preferences.notificationPreferences?.email || false}
+                      onChange={(e) => handleNotificationChange('email', e.target.checked)}
+                      name="emailNotifications"
+                    />
+                  }
+                  label="Email"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={preferences.notificationPreferences?.inApp || false}
+                      onChange={(e) => handleNotificationChange('inApp', e.target.checked)}
+                      name="inAppNotifications"
+                    />
+                  }
+                  label="In-App"
+                />
+              </Grid>
+              <Grid item xs={12} sm={4}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={preferences.notificationPreferences?.sms || false}
+                      onChange={(e) => handleNotificationChange('sms', e.target.checked)}
+                      name="smsNotifications"
+                    />
+                  }
+                  label="SMS"
+                />
+              </Grid>
+            </Grid>
+          </FormControl>
         </Grid>
       </Grid>
     </Paper>

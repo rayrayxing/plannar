@@ -16,10 +16,37 @@ interface ResourceFormProps {
 }
 
 const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUpdating = false }) => {
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(initialData?.personalInfo || { name: '', email: '', employeeId: '', phone: '' });
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(
+    initialData?.personalInfo || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      employeeId: '',
+      title: '',
+      department: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      employmentStatus: '',
+      phone: '',
+    }
+  );
   const [skills, setSkills] = useState<Skill[]>(initialData?.skills || []);
-  const [availability, setAvailability] = useState<Availability>(initialData?.availability || { workArrangement: { type: 'full-time', standardHours: { monday: {active: true}, tuesday: {active: true}, wednesday: {active: true}, thursday: {active: true}, friday: {active: true}, saturday: {active: false}, sunday: {active: false}} }, timeOff: [] });
-  const [rates, setRates] = useState<Rates>(initialData?.rates || { standard: 0, overtime: 0, weekend: 0 });
+  const [availability, setAvailability] = useState<Availability>(initialData?.availability || {
+    workArrangement: 'full-time',
+    workHours: {
+      monday: { active: true, start: '09:00', end: '17:00' },
+      tuesday: { active: true, start: '09:00', end: '17:00' },
+      wednesday: { active: true, start: '09:00', end: '17:00' },
+      thursday: { active: true, start: '09:00', end: '17:00' },
+      friday: { active: true, start: '09:00', end: '17:00' },
+      saturday: { active: false },
+      sunday: { active: false },
+    },
+    timeZone: 'UTC',
+    exceptions: []
+  });
+  const [rates, setRates] = useState<Rates>(initialData?.rates || { standard: 0, overtime: 0, weekend: 0, currency: 'USD' });
   const [status, setStatus] = useState<ResourceStatus>(initialData?.status || 'active');
   const [maxAssignments, setMaxAssignments] = useState<number>(initialData?.maxAssignments || 2);
   const [maxHoursPerDay, setMaxHoursPerDay] = useState<number>(initialData?.maxHoursPerDay || 14);
@@ -55,9 +82,19 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUp
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
           <TextField
-            label="Full Name"
-            value={personalInfo.name}
-            onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
+            label="First Name"
+            value={personalInfo.firstName}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, firstName: e.target.value })}
+            fullWidth
+            required
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Last Name"
+            value={personalInfo.lastName}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, lastName: e.target.value })}
             fullWidth
             required
             className="mb-4"
@@ -89,6 +126,64 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUp
             label="Phone (Optional)"
             value={personalInfo.phone || ''}
             onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
+            fullWidth
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Title (Optional)"
+            value={personalInfo.title || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, title: e.target.value })}
+            fullWidth
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Department (Optional)"
+            value={personalInfo.department || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, department: e.target.value })}
+            fullWidth
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Location (Optional)"
+            value={personalInfo.location || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })}
+            fullWidth
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Start Date (Optional)"
+            type="date"
+            value={personalInfo.startDate || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, startDate: e.target.value })}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="End Date (Optional)"
+            type="date"
+            value={personalInfo.endDate || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, endDate: e.target.value })}
+            fullWidth
+            InputLabelProps={{ shrink: true }}
+            className="mb-4"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <TextField
+            label="Employment Status (Optional)"
+            value={personalInfo.employmentStatus || ''}
+            onChange={(e) => setPersonalInfo({ ...personalInfo, employmentStatus: e.target.value })}
             fullWidth
             className="mb-4"
           />

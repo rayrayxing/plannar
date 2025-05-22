@@ -63,6 +63,17 @@ const RatesLimitsFormSection: React.FC<RatesLimitsFormSectionProps> = ({
             }}
           />
         </Grid>
+        <Grid item xs={12} sm={4}>
+          <TextField
+            label="Currency"
+            value={rates.currency || 'USD'} // Default to USD in display if not set
+            onChange={(e) => setRates({ ...rates, currency: e.target.value || undefined })}
+            fullWidth
+            required // TRD implies it's required
+            size="small"
+            helperText="e.g., USD, EUR"
+          />
+        </Grid>
         <Grid item xs={12} sm={6}>
           <TextField
             label="Max Concurrent Assignments"

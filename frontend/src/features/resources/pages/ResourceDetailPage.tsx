@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Paper, CircularProgress, Box, Grid, Chip, List, ListItem, ListItemText, Divider, Button } from '@mui/material';
 import { useParams, Link as RouterLink } from 'react-router-dom'; // Assuming react-router-dom
-import { Resource, Skill, TimeOffEntry, AuditLogEntry, ResourceStatus } from '../../../types/resource.types';
+import { Resource, Skill, AuditLogEntry, ResourceStatus, ExceptionEntry, DayOfWeek } from '../../../types/resource.types';
 import AuditLogDisplay from '../components/AuditLogDisplay';
 
 // TODO: Import an API service
@@ -10,38 +10,54 @@ import AuditLogDisplay from '../components/AuditLogDisplay';
 // Mock data for a single resource - replace with API call
 const MOCK_SINGLE_RESOURCE: Resource = {
     id: '1',
-    personalInfo: { name: 'Alice Wonderland', email: 'alice@example.com', employeeId: 'EMP001', phone: '555-1234' },
+\
+    personalInfo: {
+      firstName: 'Alice',
+      lastName: 'Wonderland',
+      email: 'alice@example.com',
+      employeeId: 'EMP001',
+      phone: '555-1234',
+      title: 'Lead Developer',
+      department: 'Core Engineering',
+      location: 'Remote (US)',
+      startDate: '2020-06-01',
+      employmentStatus: 'Active',
+    },
     skills: [
         { name: 'React', proficiency: 8, yearsExperience: 3 }, 
         { name: 'Node.js', proficiency: 7, yearsExperience: 2 },
         { name: 'TypeScript', proficiency: 7, yearsExperience: 2 },
     ],
     availability: {
-        workArrangement: { 
-            type: 'full-time', 
-            standardHours: {
-                monday: { active: true, startTime: '09:00', endTime: '17:00' },
-                tuesday: { active: true, startTime: '09:00', endTime: '17:00' },
-                wednesday: { active: true, startTime: '09:00', endTime: '17:00' },
-                thursday: { active: true, startTime: '09:00', endTime: '17:00' },
-                friday: { active: true, startTime: '09:00', endTime: '17:00' },
-                saturday: { active: false },
-                sunday: { active: false },
-            },
-            notes: 'Prefers to start early.'
-        },
-        timeOff: [
-            { startDate: '2024-07-01', endDate: '2024-07-05', type: 'vacation', description: 'Summer break' },
-        ],
+      workArrangement: 'full-time', // WorkArrangementType
+      workHours: { // WorkHours
+        monday: { active: true, start: '09:00', end: '17:00' },
+        tuesday: { active: true, start: '09:00', end: '17:00' },
+        wednesday: { active: true, start: '09:00', end: '17:00' },
+        thursday: { active: true, start: '09:00', end: '17:00' },
+        friday: { active: true, start: '09:00', end: '17:00' },
+        saturday: { active: false },
+        sunday: { active: false },
+      },
+      timeZone: 'America/New_York', // string
+      exceptions: [ // ExceptionEntry[]
+        { id: 'ex1', startDate: '2024-07-01', endDate: '2024-07-05', type: 'vacation', description: 'Summer break' },
+        { id: 'ex2', startDate: '2024-08-19', endDate: '2024-08-19', type: 'sick-leave', description: 'Doctor appointment' },
+      ]
     },
-    rates: { standard: 100, overtime: 150, weekend: 200 },
+    rates: { standard: 100, overtime: 150, weekend: 200, currency: 'USD' },
     status: 'active',
     maxAssignments: 2,
     maxHoursPerDay: 8,
     certifications: ['AWS Certified Developer', 'Scrum Master Certified'],
     specializations: ['Frontend Development', 'Cloud Solutions'],
-    department: 'Engineering',
-    location: 'Remote (US)',
+
+    preferences: {
+      projectPreferences: ['Long-term projects', 'Frontend focused'],
+      workloadPreferences: 'Prefers 3-4 active tasks',
+      skillDevelopment: ['Learn Vue.js', 'Improve AWS skills'],
+      other: 'Enjoys mentoring junior developers',
+    },
     managerId: 'MGR010',
     historicalPerformanceMetrics: [
         { metricName: 'Project Completion Rate', value: '95%', period: 'Q1 2024' },
@@ -129,7 +145,7 @@ const ResourceDetailPage: React.FC = () => {
         <Box className="flex justify-between items-start mb-4">
             <div>
                 <Typography variant="h4" component="h1" gutterBottom>
-                    {resource.personalInfo.name}
+                    {`${resource.personalInfo.firstName} ${resource.personalInfo.lastName}`}
                 </Typography>
                 <Chip 
                     label={resource.status.charAt(0).toUpperCase() + resource.status.slice(1)}
@@ -154,8 +170,12 @@ const ResourceDetailPage: React.FC = () => {
                 <Typography><strong>Email:</strong> {resource.personalInfo.email}</Typography>
                 {resource.personalInfo.phone && <Typography><strong>Phone:</strong> {resource.personalInfo.phone}</Typography>}
                 {resource.personalInfo.employeeId && <Typography><strong>Employee ID:</strong> {resource.personalInfo.employeeId}</Typography>}
-                {resource.department && <Typography><strong>Department:</strong> {resource.department}</Typography>}
-                {resource.location && <Typography><strong>Location:</strong> {resource.location}</Typography>}
+                {resource.personalInfo.department && <Typography><strong>Department:</strong> {resource.personalInfo.department}</Typography>}
+                {resource.personalInfo.location && <Typography><strong>Location:</strong> {resource.personalInfo.location}</Typography>}
+                    {resource.personalInfo.title && <Typography><strong>Title:</strong> {resource.personalInfo.title}</Typography>}
+                    {resource.personalInfo.startDate && <Typography><strong>Start Date:</strong> {resource.personalInfo.startDate}</Typography>}
+                    {resource.personalInfo.endDate && <Typography><strong>End Date:</strong> {resource.personalInfo.endDate}</Typography>}
+                    {resource.personalInfo.employmentStatus && <Typography><strong>Employment Status:</strong> {resource.personalInfo.employmentStatus}</Typography>}
                 {resource.managerId && <Typography><strong>Manager ID:</strong> {resource.managerId}</Typography>}
 
                 <Typography variant="h6" gutterBottom className="mt-4">Operational Limits</Typography>
@@ -194,25 +214,55 @@ const ResourceDetailPage: React.FC = () => {
             {/* Column 3: Availability & Rates */}
             <Grid item xs={12} md={4}>
                 <Typography variant="h6" gutterBottom>Availability</Typography>
-                <Typography><strong>Arrangement:</strong> {resource.availability.workArrangement.type}</Typography>
-                {resource.availability.workArrangement.notes && <Typography><em>Notes: {resource.availability.workArrangement.notes}</em></Typography>}
+                <Typography><strong>Arrangement:</strong> {resource.availability.workArrangement}</Typography>
+                {/* {resource.availability.workArrangement.notes && <Typography><em>Notes: {resource.availability.workArrangement.notes}</em></Typography>} */}
+                    {resource.availability.timeZone && <Typography><strong>Time Zone:</strong> {resource.availability.timeZone}</Typography>}
+                    <Typography variant="subtitle1" gutterBottom className="mt-2">Standard Work Hours</Typography>
+                    {resource.availability.workHours && Object.entries(resource.availability.workHours)
+                        .filter(([_, dayDetails]) => dayDetails.active)
+                        .map(([day, dayDetails]) => (
+                            <Typography key={day} sx={{ fontSize: '0.875rem', pl:1 }}> {/* dense equivalent */}
+                                <strong>{day.charAt(0).toUpperCase() + day.slice(1)}:</strong> {dayDetails.start} - {dayDetails.end}
+                            </Typography>
+                        ))
+                    }
+                    {resource.availability.workHours && !Object.values(resource.availability.workHours).some(d => d.active) && (
+                        <Typography sx={{ fontSize: '0.875rem', pl:1 }}>No standard work hours defined.</Typography>
+                    )}
                 {/* TODO: Display custom schedule if applicable */}
 
-                <Typography variant="subtitle1" gutterBottom className="mt-2">Time Off</Typography>
-                {(resource.availability.timeOff || []).length > 0 ? (
+                <Typography variant="subtitle1" gutterBottom className="mt-2">Exceptions / Time Off</Typography>
+                {(resource.availability.exceptions || []).length > 0 ? (
                     <List dense>
-                        {(resource.availability.timeOff || []).map((to, index) => (
-                            <ListItem key={index} disableGutters>
-                                <ListItemText primary={`${to.type}: ${to.startDate} to ${to.endDate}`} secondary={to.description} />
+                        {(resource.availability.exceptions || []).map((ex, index) => (
+                            <ListItem key={ex.id || index} disableGutters>
+                                <ListItemText primary={`${ex.type.charAt(0).toUpperCase() + ex.type.slice(1)}: ${ex.startDate} to ${ex.endDate}`} secondary={ex.description} />
                             </ListItem>
                         ))}
                     </List>
-                ) : <Typography>No time off scheduled.</Typography>}
+                ) : <Typography>No exceptions scheduled.</Typography>}
 
                 <Typography variant="h6" gutterBottom className="mt-4">Rates</Typography>
-                <Typography><strong>Standard:</strong> ${resource.rates.standard}/hr</Typography>
-                {resource.rates.overtime && <Typography><strong>Overtime:</strong> ${resource.rates.overtime}/hr</Typography>}
-                {resource.rates.weekend && <Typography><strong>Weekend:</strong> ${resource.rates.weekend}/hr</Typography>}
+                <Typography><strong>Standard:</strong> ${resource.rates.standard}/hr ({resource.rates.currency})</Typography>
+                {resource.rates.overtime && <Typography><strong>Overtime:</strong> ${resource.rates.overtime}/hr ({resource.rates.currency})</Typography>}
+                {resource.rates.weekend && <Typography><strong>Weekend:</strong> ${resource.rates.weekend}/hr ({resource.rates.currency})</Typography>}
+                <Typography variant="h6" gutterBottom className="mt-4">Preferences</Typography>
+                {resource.preferences ? (
+                    <>
+                        {resource.preferences.projectPreferences && resource.preferences.projectPreferences.length > 0 && (
+                            <Typography><strong>Project Types:</strong> {resource.preferences.projectPreferences.join(', ')}</Typography>
+                        )}
+                        {resource.preferences.workloadPreferences && (
+                            <Typography><strong>Workload:</strong> {resource.preferences.workloadPreferences}</Typography>
+                        )}
+                        {resource.preferences.skillDevelopment && resource.preferences.skillDevelopment.length > 0 && (
+                            <Typography><strong>Skill Development:</strong> {resource.preferences.skillDevelopment.join(', ')}</Typography>
+                        )}
+                        {resource.preferences.other && (
+                            <Typography><strong>Other:</strong> {resource.preferences.other}</Typography>
+                        )}
+                    </>
+                ) : <Typography>No preferences specified.</Typography>}
             </Grid>
         </Grid>
         

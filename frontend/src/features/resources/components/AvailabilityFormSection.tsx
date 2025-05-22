@@ -5,7 +5,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { Availability, WorkArrangement, TimeOffEntry, DayHours } from '../../../types/resource.types';
+import { Availability, WorkHours, DayWorkHours, ExceptionEntry, ExceptionEntryType, WorkArrangementType } from '../../../types/resource.types';
 import { useModal } from '../../../contexts/ModalContext';
 
 interface AvailabilityFormSectionProps {
@@ -13,82 +13,90 @@ interface AvailabilityFormSectionProps {
   setAvailability: React.Dispatch<React.SetStateAction<Availability>>;
 }
 
-const daysOfWeek: (keyof WorkArrangement['standardHours'])[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+const daysOfWeek: (keyof WorkHours)[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ availability, setAvailability }) => {
-  const { workArrangement, timeOff } = availability;
+  const { workArrangement, workHours, timeZone, exceptions } = availability; // workArrangement is now WorkArrangementType (string)
 
   const { openModal } = useModal();
 
   const handleWorkArrangementTypeChange = (event: any) => {
-    const type = event.target.value as WorkArrangement['type'];
-    let newStandardHours = workArrangement.standardHours || {};
-    if (type === 'full-time') {
-        newStandardHours = {
-            monday: { active: true, startTime: '09:00', endTime: '17:00' },
-            tuesday: { active: true, startTime: '09:00', endTime: '17:00' },
-            wednesday: { active: true, startTime: '09:00', endTime: '17:00' },
-            thursday: { active: true, startTime: '09:00', endTime: '17:00' },
-            friday: { active: true, startTime: '09:00', endTime: '17:00' },
-            saturday: { active: false },
-            sunday: { active: false },
-        };
-    } else if (type === 'custom' && Object.keys(newStandardHours).length === 0) {
-        // Initialize custom if not already set
-        newStandardHours = {
-            monday: { active: false }, tuesday: { active: false }, wednesday: { active: false },
-            thursday: { active: false }, friday: { active: false }, saturday: { active: false }, sunday: { active: false },
-        };
+    const newWorkArrangementType = event.target.value as WorkArrangementType;
+    let updatedWorkHours: WorkHours | undefined = availability.workHours; // Keep existing hours by default
+
+    if (newWorkArrangementType === 'full-time') {
+      updatedWorkHours = {
+        monday: { active: true, start: '09:00', end: '17:00' },
+        tuesday: { active: true, start: '09:00', end: '17:00' },
+        wednesday: { active: true, start: '09:00', end: '17:00' },
+        thursday: { active: true, start: '09:00', end: '17:00' },
+        friday: { active: true, start: '09:00', end: '17:00' },
+        saturday: { active: false },
+        sunday: { active: false },
+      };
+    } else if (newWorkArrangementType === 'part-time') {
+      updatedWorkHours = {
+        monday: { active: false }, tuesday: { active: false }, wednesday: { active: false },
+        thursday: { active: false }, friday: { active: false }, saturday: { active: false }, sunday: { active: false },
+      };
+    } else if (newWorkArrangementType === 'contractor' || newWorkArrangementType === 'intern') {
+      updatedWorkHours = undefined;
     }
-    setAvailability({ 
-        ...availability, 
-        workArrangement: { ...workArrangement, type, standardHours: newStandardHours }
+
+    setAvailability({
+      ...availability,
+      workArrangement: newWorkArrangementType,
+      workHours: updatedWorkHours,
     });
   };
 
-  const handleDayHoursChange = (day: keyof WorkArrangement['standardHours'], field: keyof DayHours, value: any) => {
-    setAvailability({
-      ...availability,
-      workArrangement: {
-        ...workArrangement,
-        standardHours: {
-          ...workArrangement.standardHours,
+  const handleDayHoursChange = (day: keyof WorkHours, field: keyof DayWorkHours, value: any) => {
+    setAvailability(prev => {
+      // Ensure workHours is initialized if it's undefined
+      const currentWorkHours = prev.workHours || {
+        monday: { active: false }, tuesday: { active: false }, wednesday: { active: false },
+        thursday: { active: false }, friday: { active: false }, saturday: { active: false }, sunday: { active: false },
+      };
+      return {
+        ...prev,
+        workHours: {
+          ...currentWorkHours,
           [day]: {
-            ...(workArrangement.standardHours?.[day] || { active: false }),
+            ...(currentWorkHours[day] || { active: false }), // Ensure day object exists
             [field]: value,
           },
         },
-      },
+      };
     });
   };
 
-  const handleAddTimeOff = () => {
+  const handleAddException = () => { // Renamed
     openModal<'resourceAvailabilityException'>({
       modalType: 'resourceAvailabilityException',
       modalProps: {
-        onSubmit: (newEntry) => {
-          setAvailability({ ...availability, timeOff: [...timeOff, newEntry] });
+        onSubmit: (newEntry: ExceptionEntry) => { // newEntry is ExceptionEntry
+          setAvailability(prev => ({ ...prev, exceptions: [...(prev.exceptions || []), newEntry] }));
         },
       }
     });
   };
 
-  const handleEditTimeOff = (index: number) => {
-    const entryToEdit = timeOff[index];
+  const handleEditException = (index: number) => { // Renamed
+    const entryToEdit = exceptions[index]; // Changed from timeOff
     openModal<'resourceAvailabilityException'>({
       modalType: 'resourceAvailabilityException',
       modalProps: {
         initialData: entryToEdit,
-        onSubmit: (updatedEntry) => {
-          const updatedList = [...timeOff];
+        onSubmit: (updatedEntry: ExceptionEntry) => { // Added type
+          const updatedList = [...(exceptions || [])]; // Ensure exceptions is an array
           updatedList[index] = updatedEntry;
-          setAvailability({ ...availability, timeOff: updatedList });
+          setAvailability(prev => ({ ...prev, exceptions: updatedList }));
         },
       }
     });
   };
-  const handleRemoveTimeOff = (index: number) => {
-    setAvailability({ ...availability, timeOff: timeOff.filter((_, i) => i !== index) });
+  const handleRemoveException = (index: number) => { // Renamed
+    setAvailability(prev => ({ ...prev, exceptions: (prev.exceptions || []).filter((_, i) => i !== index) }));
   };
 
   return (
@@ -104,39 +112,37 @@ const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ avail
             <Select
               labelId="work-arrangement-type-label"
               label="Arrangement Type"
-              value={workArrangement.type}
-              onChange={handleWorkArrangementTypeChange}
+              value={workArrangement} // Changed from workArrangement.type
+              onChange={handleWorkArrangementTypeChange} // This handler will be updated later
             >
               <MenuItem value="full-time">Full-time</MenuItem>
               <MenuItem value="part-time">Part-time</MenuItem>
-              <MenuItem value="contract">Contract</MenuItem>
-              <MenuItem value="temporary">Temporary</MenuItem>
-              <MenuItem value="custom">Custom</MenuItem>
+              <MenuItem value="contractor">Contractor</MenuItem> {/* Changed from contract */}
+              <MenuItem value="intern">Intern</MenuItem> {/* New value */}
             </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12} sm={8}>
-            <TextField 
-                label="Notes (e.g. timezone, specific preferences)"
-                value={workArrangement.notes || ''}
-                onChange={(e) => setAvailability({ ...availability, workArrangement: { ...workArrangement, notes: e.target.value }})}
-                fullWidth
-                multiline
-                rows={1}
-                size="small"
-            />
+          <TextField
+            label="Time Zone"
+            value={timeZone || ''}
+            onChange={(e) => setAvailability({ ...availability, timeZone: e.target.value })}
+            fullWidth
+            size="small"
+            helperText="e.g., America/New_York, Europe/London, UTC"
+          />
         </Grid>
       </Grid>
 
-      {workArrangement.type === 'custom' && (
+      {workHours && (
         <Box className="mt-4 p-3 border rounded">
           <Typography variant="subtitle2" className="mb-2">Custom Standard Hours</Typography>
           {daysOfWeek.map(day => (
             <Grid container spacing={1} alignItems="center" key={day} className="mb-1">
-              <Grid item xs={2}>
+              <Grid item xs={2}> {/* Checkbox + Label */}
                 <FormControlLabel
                   control={<Checkbox 
-                    checked={workArrangement.standardHours?.[day]?.active || false}
+                    checked={workHours?.[day]?.active || false}
                     onChange={(e) => handleDayHoursChange(day, 'active', e.target.checked)}
                     size="small"
                   />}
@@ -144,42 +150,31 @@ const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ avail
                   className="text-sm"
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={4}> {/* Start Time */}
                 <TextField 
                   label="Start Time"
                   type="time"
-                  value={workArrangement.standardHours?.[day]?.startTime || ''}
-                  onChange={(e) => handleDayHoursChange(day, 'startTime', e.target.value)}
-                  disabled={!workArrangement.standardHours?.[day]?.active}
+                  value={workHours?.[day]?.start || ''}
+                  onChange={(e) => handleDayHoursChange(day, 'start', e.target.value)}
+                  disabled={!workHours?.[day]?.active}
                   fullWidth 
                   size="small"
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-              <Grid item xs={3}>
+              <Grid item xs={4}> {/* End Time */}
                 <TextField 
                   label="End Time"
                   type="time"
-                  value={workArrangement.standardHours?.[day]?.endTime || ''}
-                  onChange={(e) => handleDayHoursChange(day, 'endTime', e.target.value)}
-                  disabled={!workArrangement.standardHours?.[day]?.active}
+                  value={workHours?.[day]?.end || ''}
+                  onChange={(e) => handleDayHoursChange(day, 'end', e.target.value)}
+                  disabled={!workHours?.[day]?.active}
                   fullWidth 
                   size="small"
                   InputLabelProps={{ shrink: true }}
                 />
               </Grid>
-               <Grid item xs={2}>
-                <TextField 
-                  label="Hours"
-                  type="number"
-                  value={workArrangement.standardHours?.[day]?.hours || ''}
-                  onChange={(e) => handleDayHoursChange(day, 'hours', parseFloat(e.target.value))}
-                  disabled={!workArrangement.standardHours?.[day]?.active}
-                  fullWidth 
-                  size="small"
-                  InputProps={{ inputProps: { min: 0, step: 0.5 } }}
-                />
-              </Grid>
+              {/* Grid item xs={2} for "Hours" TextField removed */}
             </Grid>
           ))}
         </Box>
@@ -190,24 +185,24 @@ const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ avail
         <Typography variant="subtitle1">Time Off / Availability Exceptions</Typography>
         <Button 
           variant="outlined" 
-          onClick={handleAddTimeOff} 
+          onClick={handleAddException} // Changed handler
           startIcon={<AddCircleOutlineIcon />}
         >
-          Add Time Off
+          Add Exception {/* Changed text */}
         </Button>
       </Box>
-      {timeOff.length > 0 && (
+      {(exceptions || []).length > 0 && (
         <List dense sx={{ mt: 1 }}>
-          {timeOff.map((entry, index) => (
+          {(exceptions || []).map((entry, index) => (
             <ListItem 
-              key={entry.id || index}
+              key={entry.id || `exception-${index}`}
               className="mb-1 border rounded"
               secondaryAction={
                 <Box>
-                  <IconButton edge="end" aria-label="edit" onClick={() => handleEditTimeOff(index)} size="small" sx={{ mr: 0.5 }}>
+                  <IconButton edge="end" aria-label="edit" onClick={() => handleEditException(index)} size="small" sx={{ mr: 0.5 }}>
                     <EditIcon fontSize="small" />
                   </IconButton>
-                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveTimeOff(index)} size="small">
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveException(index)} size="small">
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
