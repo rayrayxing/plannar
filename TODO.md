@@ -189,8 +189,8 @@
             - [x] Fetch list of resources using API call (replace mock data).
             - [/] Implement filtering (by status, skills, etc.). (Client-side filtering for name, email, status, skill name implemented and fixed; more filters pending as per inline TODO)
             - [ ] Implement sorting:
-                - [ ] Add UI elements for selecting sort key (e.g., Name, Status) and direction (ASC/DESC).
-                - [ ] Add state variables for current sort key and direction.
+                - [x] Add UI elements for selecting sort key (e.g., Name, Status) and direction (ASC/DESC).
+                - [x] Add state variables for current sort key and direction.
                 - [ ] Implement sorting logic within `ResourceListPage.tsx` (e.g., in `useMemo` after filtering).
             - [ ] Implement pagination.
             - [ ] Ensure `ResourceCard.tsx` displays summary information correctly from API data.

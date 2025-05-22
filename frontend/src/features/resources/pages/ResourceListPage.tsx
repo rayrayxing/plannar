@@ -15,6 +15,8 @@ const ResourceListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ResourceStatus | 'all'>('all');
   const [skillFilter, setSkillFilter] = useState('');
+  const [sortKey, setSortKey] = useState<string>(''); // '' for none, 'name', 'status'
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -67,7 +69,7 @@ const ResourceListPage: React.FC = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <FormControl fullWidth variant="outlined" size="small">
               <InputLabel>Status</InputLabel>
               <Select
@@ -84,7 +86,7 @@ const ResourceListPage: React.FC = () => {
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField 
               label="Filter by Skill"
               variant="outlined"
@@ -93,6 +95,33 @@ const ResourceListPage: React.FC = () => {
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth variant="outlined" size="small">
+              <InputLabel>Sort by</InputLabel>
+              <Select
+                value={sortKey} // New state variable
+                onChange={(e) => setSortKey(e.target.value as string)} // New state setter
+                label="Sort by"
+              >
+                <MenuItem value=""><em>None</em></MenuItem>
+                <MenuItem value="name">Name</MenuItem>
+                <MenuItem value="status">Status</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth variant="outlined" size="small" disabled={!sortKey}> {/* Disable if no sort key */}
+              <InputLabel>Direction</InputLabel>
+              <Select
+                value={sortDirection} // New state variable
+                onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')} // New state setter
+                label="Direction"
+              >
+                <MenuItem value="asc">Ascending</MenuItem>
+                <MenuItem value="desc">Descending</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
           {/* TODO: Add more filters like availability, rate range, etc. */}
         </Grid>
