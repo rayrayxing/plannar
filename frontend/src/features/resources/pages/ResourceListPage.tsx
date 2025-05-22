@@ -16,6 +16,8 @@ const ResourceListPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<ResourceStatus | 'all'>('all');
   const [skillFilter, setSkillFilter] = useState('');
   const [availabilityFilter, setAvailabilityFilter] = useState<WorkArrangementType | ''>( '');
+  const [minRateFilter, setMinRateFilter] = useState<string>('');
+  const [maxRateFilter, setMaxRateFilter] = useState<string>('');
   const [sortKey, setSortKey] = useState<string>(''); // '' for none, 'name', 'status'
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -52,9 +54,29 @@ const ResourceListPage: React.FC = () => {
         (skill.skillName || '').toLowerCase().includes(skillFilterLower)
       );
       const availabilityMatch = availabilityFilter === '' || resource.availability.workArrangement === availabilityFilter;
-      return (nameMatch || emailMatch) && statusMatch && skillMatch && availabilityMatch;
+
+      const standardRateEntry = resource.rates?.find(r => r.rateType === 'standard');
+      const currentRate = standardRateEntry?.standardRate;
+
+      let rateMatch = true;
+      const minRate = minRateFilter ? parseFloat(minRateFilter) : null;
+      const maxRate = maxRateFilter ? parseFloat(maxRateFilter) : null;
+
+      if (minRate !== null || maxRate !== null) { // Only apply rate filter if at least one is set
+        if (currentRate === undefined || currentRate === null) {
+          rateMatch = false; // No rate, so fails if filters are active
+        } else {
+          if (minRate !== null && !isNaN(minRate) && currentRate < minRate) {
+            rateMatch = false;
+          }
+          if (maxRate !== null && !isNaN(maxRate) && currentRate > maxRate) {
+            rateMatch = false;
+          }
+        }
+      }
+      return (nameMatch || emailMatch) && statusMatch && skillMatch && availabilityMatch && rateMatch;
     });
-  }, [resources, searchTerm, statusFilter, skillFilter, availabilityFilter]);
+  }, [resources, searchTerm, statusFilter, skillFilter, availabilityFilter, minRateFilter, maxRateFilter]);
 
   const sortedAndFilteredResources = useMemo(() => {
     let sorted = [...filteredResources]; // Create a new array for sorting
@@ -148,31 +170,55 @@ const ResourceListPage: React.FC = () => {
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel>Sort by</InputLabel>
-              <Select
-                value={sortKey} // New state variable
-                onChange={(e) => setSortKey(e.target.value as string)} // New state setter
-                label="Sort by"
-              >
-                <MenuItem value=""><em>None</em></MenuItem>
-                <MenuItem value="name">Name</MenuItem>
-                <MenuItem value="status">Status</MenuItem>
-              </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                label="Min Rate"
+                type="number"
+                variant="outlined"
+                size="small"
+                value={minRateFilter}
+                onChange={(e) => setMinRateFilter(e.target.value)}
+                sx={{ flex: 1 }}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+              <TextField
+                label="Max Rate"
+                type="number"
+                variant="outlined"
+                size="small"
+                value={maxRateFilter}
+                onChange={(e) => setMaxRateFilter(e.target.value)}
+                sx={{ flex: 1 }}
+                InputProps={{ inputProps: { min: 0 } }}
+              />
+            </Box>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
-            <FormControl fullWidth variant="outlined" size="small" disabled={!sortKey}> {/* Disable if no sort key */}
-              <InputLabel>Direction</InputLabel>
-              <Select
-                value={sortDirection} // New state variable
-                onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')} // New state setter
-                label="Direction"
-              >
-                <MenuItem value="asc">Ascending</MenuItem>
-                <MenuItem value="desc">Descending</MenuItem>
-              </Select>
-            </FormControl>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <FormControl fullWidth variant="outlined" size="small" sx={{ flex: 1 }}>
+                <InputLabel>Sort by</InputLabel>
+                <Select
+                  value={sortKey}
+                  onChange={(e) => setSortKey(e.target.value as string)}
+                  label="Sort by"
+                >
+                  <MenuItem value=""><em>None</em></MenuItem>
+                  <MenuItem value="name">Name</MenuItem>
+                  <MenuItem value="status">Status</MenuItem>
+                </Select>
+              </FormControl>
+              <FormControl fullWidth variant="outlined" size="small" disabled={!sortKey} sx={{ flex: 1 }}>
+                <InputLabel>Direction</InputLabel>
+                <Select
+                  value={sortDirection}
+                  onChange={(e) => setSortDirection(e.target.value as 'asc' | 'desc')}
+                  label="Direction"
+                >
+                  <MenuItem value="asc">Ascending</MenuItem>
+                  <MenuItem value="desc">Descending</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
           </Grid>
           {/* TODO: Add more filters like availability, rate range, etc. */}
         </Grid>

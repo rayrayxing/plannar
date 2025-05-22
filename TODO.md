@@ -190,7 +190,7 @@
             - [ ] Implement advanced filtering:
                 - [x] Basic filtering (name, email, status, skill name). (Client-side filtering for name, email, status, skill name implemented and fixed)
                 - [x] Add filter for Availability (Work Arrangement Type).
-                - [ ] Add filter for Rate Range (Standard Rate, e.g., min/max input).
+                - [x] Add filter for Rate Range (Standard Rate, e.g., min/max input).
                 - [ ] Design and Add UI elements for new filters.
                 - [ ] Implement filtering logic for new filters within `ResourceListPage.tsx`.
             - [x] Implement sorting:
