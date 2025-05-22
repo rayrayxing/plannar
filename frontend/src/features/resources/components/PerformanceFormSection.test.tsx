@@ -249,5 +249,82 @@ describe('PerformanceFormSection', () => {
         expect(mockSetPerformanceMetrics).toHaveBeenCalledWith([existingMetric, newMetricFromModal]);
       });
   });
+  describe('Edit Metric functionality', () => {
+    const metric1: PerformanceMetric = {
+      id: 'metric-id-1',
+      metricName: 'Quality of Work',
+      rating: 4,
+      reviewDate: '2023-03-10T10:00:00.000Z',
+      reviewerId: 'reviewer-edit-1',
+      resourceId: 'resource-123',
+    };
+    const metric2: PerformanceMetric = {
+      id: 'metric-id-2',
+      metricName: 'Punctuality',
+      rating: 5,
+      reviewDate: '2023-04-10T10:00:00.000Z',
+      reviewerId: 'reviewer-edit-2',
+      resourceId: 'resource-123',
+    };
+    const initialMetricsForEdit: PerformanceMetric[] = [metric1, metric2];
+
+    const propsForEdit = {
+      performanceMetrics: initialMetricsForEdit,
+      setPerformanceMetrics: mockSetPerformanceMetrics,
+    };
+
+    it('should call openModal with correct initialData when an "Edit" button is clicked', () => {
+      renderWithModalContext(<PerformanceFormSection {...propsForEdit} />);
+      
+      const listItemForMetric1 = screen.getByText(`${metric1.metricName}: ${metric1.rating}`).closest('li');
+      expect(listItemForMetric1).not.toBeNull();
+      if (!listItemForMetric1) return; 
+
+      const editButton = within(listItemForMetric1).getByRole('button', { name: /edit/i });
+      fireEvent.click(editButton);
+
+      expect(mockOpenModal).toHaveBeenCalledTimes(1);
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          modalType: 'performanceMetricModal',
+          modalProps: expect.objectContaining({
+            initialData: metric1, 
+            onSubmit: expect.any(Function),
+          }),
+        })
+      );
+    });
+
+    it('should call setPerformanceMetrics with the updated metric when modal submits for an edit', () => {
+      renderWithModalContext(<PerformanceFormSection {...propsForEdit} />);
+      
+      const listItemForMetric1 = screen.getByText(`${metric1.metricName}: ${metric1.rating}`).closest('li');
+      expect(listItemForMetric1).not.toBeNull();
+      if (!listItemForMetric1) return;
+
+      const editButton = within(listItemForMetric1).getByRole('button', { name: /edit/i });
+      fireEvent.click(editButton);
+
+      expect(mockOpenModal).toHaveBeenCalledTimes(1);
+      const openModalCallArgs = mockOpenModal.mock.calls[0][0];
+      const onSubmitFromModalProps = openModalCallArgs.modalProps.onSubmit;
+
+      expect(onSubmitFromModalProps).toEqual(expect.any(Function));
+
+      const updatedMetricData: PerformanceMetric = {
+        ...metric1, 
+        metricName: 'Improved Quality of Work',
+        rating: 5,
+        comments: 'Significant improvement noted.',
+      };
+      
+      onSubmitFromModalProps(updatedMetricData);
+
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledTimes(1);
+      const expectedMetricsList = [...initialMetricsForEdit];
+      expectedMetricsList[0] = updatedMetricData; 
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledWith(expectedMetricsList);
+    });
+  });
   // More tests will follow
 });

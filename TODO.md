@@ -216,9 +216,9 @@
             - [x] Test "Add New Metric" functionality:
                 - [x] Verify modal opens.
                 - [x] Verify `setPerformanceMetrics` is called with the new metric on modal submission.
-            - [ ] Test "Edit Metric" functionality:
-                - [ ] Verify modal opens with correct `initialData`.
-                - [ ] Verify `onMetricsChange` is called with the updated metric on modal submission.
+            - [x] Test "Edit Metric" functionality:
+                - [x] Verify modal opens with correct `initialData`.
+                - [x] Verify `setPerformanceMetrics` is called with the updated metric on modal submission.
             - [ ] Test "Delete Metric" functionality:
                 - [ ] Verify `onMetricsChange` is called with the metric removed (consider confirmation if any).
         - [x] `PerformanceMetricModal.tsx`: Debugging non-rendering issue and writing comprehensive tests. (Covered by items 98-106)
