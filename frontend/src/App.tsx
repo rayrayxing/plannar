@@ -12,6 +12,8 @@ import { Button, Box, Typography, CssBaseline, ThemeProvider, createTheme } from
 import { ModalProvider } from './contexts/ModalContext';
 import ModalRenderer from './components/modals/ModalWrapper'; // Renamed to ModalRenderer for clarity
 import { trackEvent } from './utils/analytics'; // Adjust path as needed
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './contexts/AuthContext';
 
 // A simple theme for Material UI components
 const theme = createTheme({
@@ -26,6 +28,7 @@ const theme = createTheme({
 });
 
 function App() {
+  const { currentUser, userData, loading, error, loginWithGoogle, logout } = useAuth();
   const [currentPage, setCurrentPage] = useState('home');
 
   useEffect(() => {
@@ -71,7 +74,8 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <ModalProvider>
+      <AuthProvider>
+        <ModalProvider>
         <CssBaseline />
         <div className="App">
           <Box sx={{ p: 2, borderBottom: '1px solid #ddd', textAlign: 'center' }}>
@@ -83,11 +87,22 @@ function App() {
             <Button variant="outlined" onClick={() => setCurrentPage('createResource')} sx={{ mr: 1 }} >Create Resource (Example)</Button>
             <Button variant="contained" color="primary" onClick={() => setCurrentPage('scheduling')} >View Schedules</Button>
             <Button variant="contained" color="info" onClick={() => setCurrentPage('adminSkills')} sx={{ mr: 1 }}>Manage Skills</Button>
+            {loading && <Typography sx={{ mr: 2 }}>Loading auth...</Typography>}
+            {error && <Typography color="error" sx={{ mr: 2 }}>Error: {error.message}</Typography>}
+            {currentUser ? (
+              <>
+                <Typography sx={{ mr: 2 }}>{currentUser.email} (Roles: {userData?.roles?.join(', ') || 'N/A'})</Typography>
+                <Button variant="outlined" onClick={logout} sx={{ mr: 1 }}>Logout</Button>
+              </>
+            ) : (
+              <Button variant="contained" onClick={loginWithGoogle} sx={{ mr: 1 }}>Login with Google</Button>
+            )}
           </Box>
           {renderPage()}
         </div>
         <ModalRenderer /> {/* Render modals at the top level */}
       </ModalProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

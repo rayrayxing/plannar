@@ -33,16 +33,16 @@
     - [x] **Skills Collection (TRD Sec 3.2.4, API per TRD Sec 4.1.6)**
         - [x] Backend: Design and implement Firestore schema for global `Skills` collection (`skill.types.ts`).
         - [x] Backend: Implement APIs for managing global skills (CRUD operations in `skills.ts`, exported via `index.ts`).
-        - [ ] Frontend: Develop UI (likely admin-only, possibly modal-based) for managing global skills.
+        - [x] Frontend: Develop UI for managing global skills (`AdminSkillsPage.tsx` with `SkillFormModal.tsx` using global modal system).
     - [x] **Modal Interactions Collection (TRD Sec 3.2.6, API per TRD Sec 4.1.7)**
         - [x] Backend: Design and implement Firestore schema for `Modal Interactions` collection (`modalInteraction.types.ts`).
         - [x] Backend: Implement API: `POST /api/modal-interactions` - Log modal interaction event (`logModalInteraction` in `modalInteractions.ts`, exported via `index.ts`).
-        - [ ] Frontend: Implement client-side logic to capture and send modal interaction data (load time, completion status, action path, etc.) to the backend API.
+        - [x] Frontend: Implement client-side logic to capture and send modal interaction data (OPEN, CLOSE with duration, SUBMIT_SUCCESS, SUBMIT_FAIL with outcomes/errors) via `ModalContext.tsx` and `SkillFormModal.tsx`.
     - [x] **Analytics Collection (TRD Sec 3.2.5, API per TRD Sec 4.1.8)**
         - [x] Backend: Design and implement Firestore schema for `Analytics` collection (`analytics.types.ts` for raw events).
         - [x] Backend: Implement basic API for storing raw analytics events (`logAnalyticsEvent` in `analytics.ts`, exported via `index.ts`).
         - [ ] Backend: Implement APIs for retrieving/aggregating analytics (placeholder for Phase 1, more in Phase 2).
-        - [ ] Frontend: Implement client-side logic to capture and send analytics event data.
+        - [x] Frontend: Implement client-side logic to capture and send analytics event data (page views in `App.tsx`, skill CRUD events in `AdminSkillsPage.tsx` and `SkillFormModal.tsx`) using `trackEvent` helper.
     - [ ] (Placeholder) Implement Modal Configuration API (TRD Sec 4.1.7 - if needed for dynamic modal behavior). (Deferred)
 
 ## II. Phase 1: Core Resource Management (3-4 months)
