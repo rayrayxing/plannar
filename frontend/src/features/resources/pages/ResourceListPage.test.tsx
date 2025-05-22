@@ -501,5 +501,77 @@ describe('ResourceListPage', () => {
     // Further tests will cover skill selection and application
   });
 
+  describe('Rate Range Filter Functionality', () => {
+    const generateMockResourcesWithRate = (count: number, rates: number[]) =>
+      rates.slice(0, count).map((rate, i) => ({
+        id: `res-rate-${i}`,
+        info: { name: `Resource Rate ${i}`, email: `res${i}@rate.com`, primaryRole: 'Developer', hourlyRate: rate },
+        status: 'Available',
+        projectCount: 1,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: generateMockResourcesWithRate(5, [50, 75, 100, 120, 150]), 
+        total: 5 
+      });
+    });
+
+    it('should filter resources by rate range when min and max rates are entered and applied', async () => {
+      const minRate = 70;
+      const maxRate = 110;
+      const filteredResults = generateMockResourcesWithRate(2, [75, 100]); 
+      
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Resource Rate 0')).toBeInTheDocument(); 
+
+      const minRateInput = screen.getByLabelText(/min rate/i); 
+      const maxRateInput = screen.getByLabelText(/max rate/i); 
+      
+      fireEvent.change(minRateInput, { target: { value: minRate.toString() } });
+      fireEvent.change(maxRateInput, { target: { value: maxRate.toString() } });
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: filteredResults, total: filteredResults.length });
+
+      expect(await screen.findByText('Resource Rate 0')).toBeInTheDocument(); 
+      expect(await screen.findByText('Resource Rate 1')).toBeInTheDocument(); 
+      
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ rateMin: minRate, rateMax: maxRate, page: 1 })
+      );
+    });
+
+    it('should clear rate filter and show all resources when inputs are cleared', async () => {
+        renderWithProviders(<ResourceListPage />);
+        expect(await screen.findByText('Resource Rate 0')).toBeInTheDocument(); 
+
+        const minRateInput = screen.getByLabelText(/min rate/i);
+        const maxRateInput = screen.getByLabelText(/max rate/i);
+
+        const minRate = 70;
+        const maxRate = 110;
+        const filteredResults = generateMockResourcesWithRate(2, [75, 100]);
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: filteredResults, total: filteredResults.length });
+        fireEvent.change(minRateInput, { target: { value: minRate.toString() } });
+        fireEvent.change(maxRateInput, { target: { value: maxRate.toString() } });
+        expect(await screen.findByText('Resource Rate 0')).toBeInTheDocument(); 
+        expect(screen.queryByText('Resource Rate 2')).not.toBeInTheDocument(); 
+
+        const allResourcesAfterClear = generateMockResourcesWithRate(5, [50, 75, 100, 120, 150]); 
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: allResourcesAfterClear, total: allResourcesAfterClear.length });
+        
+        fireEvent.change(minRateInput, { target: { value: '' } });
+        fireEvent.change(maxRateInput, { target: { value: '' } });
+
+        expect(await screen.findByText('Resource Rate 0')).toBeInTheDocument(); 
+        expect(await screen.findByText('Resource Rate 3')).toBeInTheDocument(); 
+
+        expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+            expect.objectContaining({ rateMin: undefined, rateMax: undefined, page: 1 })
+        );
+    });
+  });
+
   // More test suites will follow
 });

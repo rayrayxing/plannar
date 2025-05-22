@@ -245,7 +245,9 @@
                 - [x] Verify "Skills" filter button opens the skills selection modal.
                 - [x] Verify selecting skills in modal and applying calls API with skills and updates UI.
                 - [x] Verify clearing skills in modal calls API with empty skills and updates UI.
-            - [ ] Test rate range filter functionality.
+            - [x] Test rate range filter functionality.
+                - [x] Verify entering min/max rate calls API with rateMin/rateMax and updates UI.
+                - [x] Verify clearing rate inputs calls API with undefined rates and updates UI.
             - [ ] Test sorting functionality (by name, email, status).
             - [ ] Test "View Details" button navigation for a resource.
             - [ ] Test "Edit" button navigation for a resource.
