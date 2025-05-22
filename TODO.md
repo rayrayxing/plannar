@@ -193,7 +193,7 @@
                 - [x] Add state variables for current sort key and direction.
                 - [x] Implement sorting logic within `ResourceListPage.tsx` (e.g., in `useMemo` after filtering).
             - [x] Implement pagination.
-            - [ ] Ensure `ResourceCard.tsx` displays summary information correctly from API data.
+            - [x] Ensure `ResourceCard.tsx` displays summary information correctly from API data.
     - [/] Develop UI for updating resource profiles. (Initial UpdateResourcePage.tsx reusing ResourceForm.tsx. API integration pending; adapt to use modals as appropriate).
     - [x] Develop UI for viewing resource skills. (Covered by ResourceDetailPage.tsx - ensure all TRD skill fields shown).
     - [x] Develop UI for viewing audit history of profile changes. (AuditLogDisplay.tsx created, integrated with mock data)

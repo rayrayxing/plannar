@@ -22,7 +22,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
     <Card variant="outlined" className="mb-4 h-full flex flex-col">
       <CardContent className="flex-grow">
         <Typography variant="h6" component="div" className="mb-1">
-          {personalInfo.name}
+          {personalInfo.firstName} {personalInfo.lastName}
         </Typography>
         <Typography variant="body2" color="text.secondary" className="mb-1">
           {personalInfo.email}
@@ -41,7 +41,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
         <Typography variant="subtitle2" className="mt-2 mb-1">Key Skills:</Typography>
         <Box className="flex flex-wrap gap-1 mb-2">
           {(skills || []).slice(0, 3).map((skill, index) => (
-            <Chip key={index} label={`${skill.name} (${skill.proficiency}/10)`} size="small" variant="outlined" />
+            <Chip key={index} label={`${skill.skillName || 'Unnamed Skill'} (${skill.proficiency}/10)`} size="small" variant="outlined" />
           ))}
           {(skills || []).length > 3 && <Chip label={`+${(skills || []).length - 3} more`} size="small" />}
           {(skills || []).length === 0 && <Typography variant="caption" color="text.secondary">No skills listed</Typography>}
@@ -49,7 +49,7 @@ const ResourceCard: React.FC<ResourceCardProps> = ({ resource }) => {
 
         <Typography variant="subtitle2" className="mt-2 mb-1">Availability:</Typography>
         <Typography variant="body2" color="text.secondary">
-            {availability.workArrangement.type.charAt(0).toUpperCase() + availability.workArrangement.type.slice(1)}
+            {availability.workArrangement.charAt(0).toUpperCase() + availability.workArrangement.slice(1)}
         </Typography>
 
       </CardContent>
