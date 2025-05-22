@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid } from '@mui/material';
-import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
-import { AdapterDateFnsV3 } from '@mui/x-date-pickers/AdapterDateFnsV3';
-import { isValid, parseISO, format } from 'date-fns';
+import React, { useContext, useState, useEffect } from 'react'; // ADDED useEffect
+import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Rating, Typography } from '@mui/material';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'; // ADDED
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns'; // ADDED
+import { DatePicker } from '@mui/x-date-pickers/DatePicker'; // ADDED
+import { ModalContext } from '../contexts/ModalContext';
 import { PerformanceMetric } from '../../../types/resource.types';
-import { useModalActionLogger } from '../hooks/useModalActionLogger';
 
 interface PerformanceMetricModalProps {
   isOpen: boolean;
@@ -14,185 +13,164 @@ interface PerformanceMetricModalProps {
   initialData?: PerformanceMetric;
 }
 
-const PerformanceMetricModal: React.FC<PerformanceMetricModalProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
-  const [id, setId] = useState<string | undefined>(undefined); // For editing existing
-  const [metricName, setMetricName] = useState('');
-  const [rating, setRating] = useState<number | '' >(''); // Allow empty string for TextField
-  const [reviewDate, setReviewDate] = useState<Date | null>(null);
-  const [comments, setComments] = useState('');
-  const [reviewCycleId, setReviewCycleId] = useState('');
-  const [reviewerId, setReviewerId] = useState('');
-  const [goalsSet, setGoalsSet] = useState('');
-  const [achievements, setAchievements] = useState('');
+const PerformanceMetricModal: React.FC<PerformanceMetricModalProps> = ({ 
+  isOpen, 
+  onClose,
+  onSubmit,
+  initialData,
+}) => {
+  const modalContext = useContext(ModalContext); 
+  const title = initialData ? "Edit Performance Metric" : "Add Performance Metric";
 
-  const { logModalAction } = useModalActionLogger('performanceMetricModal');
+  // Form State
+  const [metricName, setMetricName] = useState('');
+  const [description, setDescription] = useState('');
+  const [rating, setRating] = useState<number | null>(null);
+  const [reviewDate, setReviewDate] = useState<Date | null>(null);
+  const [notes, setNotes] = useState('');
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (initialData) {
-      setId(initialData.id); // id is mandatory in PerformanceMetric
-      setMetricName(initialData.metricName || '');
-      setRating(initialData.rating || '');
-      setReviewDate(initialData.reviewDate && isValid(parseISO(initialData.reviewDate)) ? parseISO(initialData.reviewDate) : null);
-      setComments(initialData.comments || '');
-      setReviewCycleId(initialData.reviewCycleId || '');
-      setReviewerId(initialData.reviewerId || '');
-      setGoalsSet(initialData.goalsSet || '');
-      setAchievements(initialData.achievements || '');
-      logModalAction({ action: 'OPEN', outcome: 'EDIT_MODE', metadata: { initialData } });
+      setMetricName(initialData.metricName);
+      setDescription(initialData.description || '');
+      setRating(initialData.rating);
+      setReviewDate(initialData.reviewDate ? new Date(initialData.reviewDate) : null);
+      setNotes(initialData.notes || '');
+      setValidationError(null); // Clear any validation errors when data is loaded
     } else {
-      setId(undefined); // Will be generated on submit for new items
+      // Reset form when initialData is not present (e.g. modal opened for new entry)
+      // or when modal is closed and reopened for a new entry after an edit.
       setMetricName('');
-      setRating('');
+      setDescription('');
+      setRating(null);
       setReviewDate(null);
-      setComments('');
-      setReviewCycleId('');
-      setReviewerId('');
-      setGoalsSet('');
-      setAchievements('');
-      logModalAction({ action: 'OPEN', outcome: 'CREATE_MODE' });
+      setNotes('');
+      setValidationError(null);
     }
-  }, [initialData, isOpen, logModalAction]);
+  }, [initialData, isOpen]); // Rerun if initialData changes or modal is (re)opened
+
+  useEffect(() => {
+    if (isOpen) {
+      modalContext.logModalAction(
+        'PerformanceMetricModal', 
+        'open', 
+        { mode: initialData ? 'edit' : 'add' }
+      );
+      // Return a cleanup function to log 'close' when the modal is closed or unmounted
+      return () => {
+        modalContext.logModalAction('PerformanceMetricModal', 'close');
+      };
+    }
+  }, [isOpen, initialData, modalContext]); // Dependencies for logging
 
   const handleSubmit = () => {
-    if (!metricName || rating === '' || !reviewDate || !isValid(reviewDate)) {
-      alert('Please fill in all required fields: Metric Name, Rating, and a valid Review Date.');
-      logModalAction({ action: 'SUBMIT', outcome: 'FAIL', metadata: { error: 'Missing required fields' } });
+    setValidationError(null); // Clear previous errors
+    const genericErrorMessage = 'Metric Name, Rating, and a valid Review Date are required.';
+
+    if (!metricName.trim()) {
+      setValidationError(genericErrorMessage);
+      return;
+    }
+    if (rating === null) {
+      setValidationError(genericErrorMessage);
+      return;
+    }
+    if (reviewDate === null) {
+      setValidationError(genericErrorMessage);
       return;
     }
 
-    const finalRating = parseFloat(String(rating));
-    if (isNaN(finalRating)) {
-        alert('Rating must be a valid number.');
-        logModalAction({ action: 'SUBMIT', outcome: 'FAIL', metadata: { error: 'Invalid rating format' } });
-        return;
-    }
-
-    const metricData: PerformanceMetric = {
-      id: id || uuidv4(), // Generate new ID if not editing
-      metricName,
-      rating: finalRating,
-      reviewDate: format(reviewDate as Date, 'yyyy-MM-dd'), // reviewDate is validated to be non-null and valid
-      comments: comments || undefined, // Optional fields become undefined if empty
-      reviewCycleId: reviewCycleId || undefined,
-      reviewerId: reviewerId || undefined,
-      goalsSet: goalsSet || undefined,
-      achievements: achievements || undefined,
+    const metricToSubmit: PerformanceMetric = {
+      id: initialData?.id || Date.now().toString(),
+      metricName: metricName.trim(),
+      description: description.trim() || undefined,
+      rating: rating, 
+      reviewDate: reviewDate.toISOString(),
+      notes: notes.trim() || undefined,
     };
-    onSubmit(metricData);
-    logModalAction({ action: 'SUBMIT', outcome: 'SUCCESS', metadata: { submittedData: metricData } });
+
+    modalContext.logModalAction('PerformanceMetricModal', 'submit', { id: metricToSubmit.id, name: metricToSubmit.metricName });
+    onSubmit(metricToSubmit);
     onClose(); 
   };
 
-  const handleClose = () => {
-    logModalAction({ action: 'CLOSE', outcome: 'CANCELLED' });
-    onClose();
-  };
-
+  if (!isOpen) {
+    return null;
+  }
   return (
-    <Dialog open={isOpen} onClose={handleClose} aria-labelledby="performance-metric-dialog-title" maxWidth="sm" fullWidth>
-      <LocalizationProvider dateAdapter={AdapterDateFnsV3}>
-        <DialogTitle id="performance-metric-dialog-title">
-          {initialData?.id ? 'Edit Performance Metric' : 'Add Performance Metric'}
-        </DialogTitle>
-        <DialogContent sx={{ paddingTop: '16px !important' }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Metric Name"
-                fullWidth
-                value={metricName}
-                onChange={(e) => setMetricName(e.target.value)}
-                required
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Rating"
-                fullWidth
-                type="number"
-                value={rating}
-                onChange={(e) => setRating(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                required
-                margin="dense"
-                inputProps={{ step: "0.1" }} // Optional: for decimal ratings
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <DatePicker
-                label="Review Date"
-                value={reviewDate}
-                onChange={(newValue) => setReviewDate(newValue)}
-                slotProps={{ textField: { 
-                  fullWidth: true, 
-                  margin: "dense", 
-                  required: true,
-                  helperText: " ",
-                } }}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Comments (Optional)"
-                fullWidth
-                multiline
-                rows={3}
-                value={comments}
-                onChange={(e) => setComments(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Review Cycle ID (Optional)"
-                fullWidth
-                value={reviewCycleId}
-                onChange={(e) => setReviewCycleId(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Reviewer ID (Optional)"
-                fullWidth
-                value={reviewerId}
-                onChange={(e) => setReviewerId(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Goals Set (Optional)"
-                fullWidth
-                multiline
-                rows={2}
-                value={goalsSet}
-                onChange={(e) => setGoalsSet(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Achievements (Optional)"
-                fullWidth
-                multiline
-                rows={2}
-                value={achievements}
-                onChange={(e) => setAchievements(e.target.value)}
-                margin="dense"
-              />
-            </Grid>
-          </Grid>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Dialog open={isOpen} onClose={onClose} data-testid="minimal-pmm-dialog">
+        <DialogTitle>{title}</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="metricName"
+            label="Metric Name"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={metricName}
+            onChange={(e) => setMetricName(e.target.value)}
+            error={!!validationError && !metricName.trim()} // Basic error indication
+          />
+          <TextField
+            margin="dense"
+            id="description"
+            label="Description (Optional)"
+            type="text"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+          <Typography component="legend" variant="body2" sx={{ mt: 2, mb: 1 }}>Rating*</Typography>
+          <Rating
+            name="performance-rating"
+            value={rating}
+            onChange={(event, newValue) => {
+              setRating(newValue);
+            }}
+            max={5} 
+          />
+          <DatePicker
+            label="Review Date*"
+            value={reviewDate}
+            onChange={(newValue) => {
+              setReviewDate(newValue);
+            }}
+            sx={{ mt: 2, width: '100%' }}
+          />
+          <TextField
+            margin="dense"
+            id="notes"
+            label="Notes (Optional)"
+            type="text"
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          {validationError && (
+            <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+              {validationError}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} color="primary">
-            {initialData?.id ? 'Save Changes' : 'Add Metric'}
+          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} color="primary" variant="contained">
+            {initialData ? 'Save Changes' : 'Save Metric'}
           </Button>
         </DialogActions>
-      </LocalizationProvider>
-    </Dialog>
+      </Dialog>
+    </LocalizationProvider>
   );
 };
-
 export default PerformanceMetricModal;

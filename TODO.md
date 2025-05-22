@@ -81,6 +81,29 @@
         - [x] Integrate `PreferencesFormSection.tsx` into `ResourceForm.tsx` and update state.
         - [x] Create `PerformanceFormSection.tsx` for historical performance metrics UI.
         - [x] Design and implement `PerformanceMetricModal.tsx` for adding/editing performance entries.
+            - [/] **Debug and Rebuild `PerformanceMetricModal.tsx` (May 2024)**
+                - [x] Resolved `<body><div /></body>` rendering issue by:
+                    - Correcting prop names in tests (`isOpen` vs `open`).
+                    - Ensuring `initialData` prop handling was consistent.
+                    - Fixing `ModalContext.Provider` value in test helper (`renderWithModalContext`).
+                - [x] `renderWithModalContext` in `PerformanceMetricModal.test.tsx` now provides a correctly typed context value.
+                - [x] `defaultProps` in `PerformanceMetricModal.test.tsx` corrected (`isOpen: true`, `initialData: undefined`).
+                - [x] `PerformanceMetricModal.tsx` incrementally rebuilt to:
+                    - Accept `isOpen`, `onClose`, `onSubmit`, `initialData` props.
+                    - Use `useContext(ModalContext)` (variable currently unused).
+                    - Display conditional title ("Add Performance Metric" / "Edit Performance Metric").
+                    - Include a "Cancel" button calling `onClose`.
+                - [x] First 3 tests passing: basic render, edit title, cancel button.
+                - [ ] **Next Steps for `PerformanceMetricModal.tsx`:**
+                    - [x] Add `DialogContent`.
+                    - [x] Add state for form fields (metric name, description, rating, review date, notes).
+                    - [x] Add MUI `TextField` (metric name, description), `Rating`, `LocalizationProvider`/`DatePicker`, `TextField` (notes).
+                    - [x] Add "Save Metric" button.
+                    - [x] Implement `handleSubmit` (validation, call `onSubmit`, call `onClose`).
+                    - [x] Implement `useEffect` to populate form from `initialData`.
+                    - [x] Implement `useEffect` to call `modalContext.logModalAction`.
+                    - [x] Fix remaining 2 failing tests (validation errors).
+                    - [x] Add comprehensive tests for all features (editing, edge cases, etc.).
         - [x] Integrate `PerformanceFormSection.tsx` (with modal) into `ResourceForm.tsx` and update state.
 
     - [x] **Align frontend data models and components with TRD specifications for Resource Management.**
@@ -146,9 +169,18 @@
 #### 3. Testing
     - [~] Unit tests for backend resource management logic (Cloud Functions). (Jest setup complete. `createResourceLogic` validation error tests PASSING. `createResourceLogic` success test FAILING due to `firebase-admin` initializeApp mock issue. Other function tests PENDING - expand to cover all TRD fields and logic).
     - [ ] Unit tests for frontend resource management components (including modal interactions).
+        - [ ] `PerformanceFormSection.tsx`: Test rendering, adding, editing, and deleting performance metrics.
+        - [~] `PerformanceMetricModal.tsx`: Debugging non-rendering issue and writing comprehensive tests. (Current focus)
     - [ ] Integration tests for Resource Management APIs (as per TRD Sec 4.1.2). (PENDING - Blocked by Firebase project setup)
     - [ ] E2E tests for creating, viewing, and updating resource profiles, including modal-driven workflows.
-
+            - [x] Confirmed basic MUI components (`Button`, `Dialog`) render correctly in tests.
+            - [x] Verified mocks for date pickers and `uuid`.
+            - [x] Attempted `try...catch` in component, no errors caught.
+            - [x] Attempted commenting out `useEffect` body, no change in rendering.
+            - [x] Systematically strip down `PerformanceMetricModal.tsx` to a minimal version and test rendering.
+            - [~] Incrementally add back features to the minimal `PerformanceMetricModal.tsx` to identify the breaking point. (Current focus)
+            - [ ] Resolve the root cause of non-rendering.
+            - [ ] Write comprehensive tests (successful submission, editing, field population, specific validations, fix incorrect button text in existing test).
 ### B. Feature: Project Definition and Management (Basic) (PRD User Story 2.1, Lines 71-93; TRD Sec 3.2.2, 4.1.3)
 
 #### 1. Backend
