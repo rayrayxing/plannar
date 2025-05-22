@@ -83,11 +83,11 @@
         - [x] Design and implement `PerformanceMetricModal.tsx` for adding/editing performance entries.
         - [x] Integrate `PerformanceFormSection.tsx` (with modal) into `ResourceForm.tsx` and update state.
 
-    - [ ] **Align frontend data models and components with TRD specifications for Resource Management.**
-        - [ ] Refactor `Resource` type in `resource.types.ts` to align with TRD schema (Sec 3.2.1), including:
+    - [x] **Align frontend data models and components with TRD specifications for Resource Management.**
+        - [x] Refactor `Resource` type in `resource.types.ts` to align with TRD schema (Sec 3.2.1), including:
             - [x] Update `info` field structure.
             - [x] Restructure `skills` and `certifications` in `resource.types.ts`: `skills` to use `SkillEndorsement[]` (with `skillId`), `certifications` to use `Certification[]` (TRD aligned).
-            - [ ] Update `availability` field structure.
+            - [x] Update `availability` field structure.
             - [x] Update `rates` field structure (review for alignment).
             - [x] Align `performance` data representation in `resource.types.ts`: Use `PerformanceMetric[]` for an array of historical entries (TRD aligned).
             - [x] Update `preferences` field structure to be specific as per TRD.
@@ -111,10 +111,10 @@
                 - [x] Update `useEffect` for `initialData`.
                 - [x] Update `handleSubmit` logic (generate ID for new, use new fields, remove `skillsCovered`).
                 - [x] Update UI elements (labels, state linkage, remove `skillsCovered` field).
-        - [ ] Update `AvailabilityFormSection.tsx` and `ResourceAvailabilityExceptionModal.tsx` to match TRD `availability` structure.
+        - [x] Update `AvailabilityFormSection.tsx` and `ResourceAvailabilityExceptionModal.tsx` to match TRD `availability` structure.
             - [x] `resource.types.ts`: Updated Availability, WorkHours, ExceptionEntry etc.
             - [x] `ResourceForm.tsx`: Updated availability state initialization.
-            - [ ] `AvailabilityFormSection.tsx`:
+            - [x] `AvailabilityFormSection.tsx`:
                 - [x] Update imports, state destructuring, daysOfWeek type.
                 - [x] Update Work Arrangement Type Select and add Time Zone field.
                 - [x] Refactor handleWorkArrangementTypeChange.

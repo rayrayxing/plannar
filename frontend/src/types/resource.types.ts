@@ -76,13 +76,15 @@ export interface Rates {
 }
 
 export interface PerformanceMetric {
-  id: string; // Unique ID for this performance entry
-  metricName: string;
-  value: string | number;
-  date: string; // ISO Date string or Timestamp when this metric was recorded/assessed
-  period?: string; // e.g., "Q1 2024", "Annual 2023"
-  notes?: string;
-  assessedBy?: string; // User ID or name of the assessor
+  id: string; // Unique ID for this performance entry, generated client-side for new entries
+  metricName: string; // Name of the metric, e.g., "Communication", "Technical Skill"
+  rating: number; // Numerical rating, e.g., 1-5, 1-10
+  reviewDate: string; // Date of the review or metric recording, YYYY-MM-DD
+  comments?: string; // General comments or notes about the performance
+  reviewCycleId?: string; // Optional: Identifier for a specific review cycle (e.g., "Q1-2024-Review")
+  reviewerId?: string; // Optional: Identifier of the person who conducted the review/assessment
+  goalsSet?: string; // Optional: Description of goals set during this review
+  achievements?: string; // Optional: Description of achievements noted
 }
 
 export interface AuditLogEntry {
