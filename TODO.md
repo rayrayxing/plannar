@@ -180,7 +180,7 @@
             - [x] **Display Preferences (TRD `preferences`):**
                 - [x] Verify all fields from `Resource.preferences` are displayed. (Updated to match current `ResourcePreferences` type)
             - [ ] **Display Audit History (PRD Line 69):**
-                - [ ] Fetch and display audit log entries related to the resource.
+                - [ ] Fetch and display audit log entries related to the resource. (Blocked: Requires type definition, API endpoint, service update, and new UI section)
             - [ ] **General UI/UX:**
                 - [ ] Ensure responsive design.
                 - [ ] Add "Edit" button linking to the resource edit page/form.
