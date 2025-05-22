@@ -14,7 +14,14 @@ export const resourceService = {
   },
 
   // Placeholder for other resource-related API calls
-  // listResources: async (): Promise<Resource[]> => { ... },
+  listResources: async (): Promise<Resource[]> => {
+    const response = await fetch(`${API_BASE_URL}/resources`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: 'Failed to fetch resources and parse error' }));
+      throw new Error(errorData.message || `Failed to fetch resources. Status: ${response.status}`);
+    }
+    return response.json() as Promise<Resource[]>;
+  },
   // createResource: async (resourceData: Partial<Resource>): Promise<Resource> => { ... },
   // updateResource: async (id: string, resourceData: Partial<Resource>): Promise<Resource> => { ... },
 };

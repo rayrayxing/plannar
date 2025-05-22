@@ -186,7 +186,7 @@
                 - [x] Add "Edit" button linking to the resource edit page/form. (Already present)
                 - [x] Add "Back to List" button. (Already present)
         - [ ] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
-            - [ ] Fetch list of resources using API call (replace mock data).
+            - [x] Fetch list of resources using API call (replace mock data).
             - [ ] Implement filtering (by status, skills, etc.).
             - [ ] Implement sorting.
             - [ ] Implement pagination.

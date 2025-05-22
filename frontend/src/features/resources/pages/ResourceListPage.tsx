@@ -1,57 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Typography, Grid, TextField, Select, MenuItem, InputLabel, FormControl, Box, Paper, CircularProgress } from '@mui/material';
-import ResourceCard from './components/ResourceCard';
+import ResourceCard from '../components/ResourceCard';
 import { Resource, ResourceStatus, Skill } from '../../../types/resource.types';
 
 // TODO: Import an API service to handle the actual data fetching
-// import { resourceService } from '../services/resourceService';
+import { resourceService } from '../services/resourceService';
 
-// Mock data for now
-const MOCK_RESOURCES: Resource[] = [
-  {
-    id: '1',
-    personalInfo: { name: 'Alice Wonderland', email: 'alice@example.com', employeeId: 'EMP001' },
-    skills: [{ name: 'React', proficiency: 8, yearsExperience: 3 }, { name: 'Node.js', proficiency: 7, yearsExperience: 2 }],
-    availability: { workArrangement: { type: 'full-time' }, timeOff: [] },
-    rates: { standard: 100 },
-    status: 'active',
-    maxAssignments: 2,
-    maxHoursPerDay: 8,
-    certifications: ['AWS Certified Developer'],
-    specializations: ['Frontend Development'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    auditLog: [],
-  },
-  {
-    id: '2',
-    personalInfo: { name: 'Bob The Builder', email: 'bob@example.com', employeeId: 'EMP002' },
-    skills: [{ name: 'Project Management', proficiency: 9, yearsExperience: 10 }, { name: 'AutoCAD', proficiency: 7, yearsExperience: 8 }],
-    availability: { workArrangement: { type: 'part-time' }, timeOff: [] },
-    rates: { standard: 120 },
-    status: 'on-leave',
-    maxAssignments: 1,
-    maxHoursPerDay: 6,
-    certifications: ['PMP'],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    auditLog: [],
-  },
-  {
-    id: '3',
-    personalInfo: { name: 'Charlie Brown', email: 'charlie@example.com', employeeId: 'EMP003' },
-    skills: [{ name: 'Java', proficiency: 6, yearsExperience: 5 }, { name: 'Spring Boot', proficiency: 5, yearsExperience: 3 }],
-    availability: { workArrangement: { type: 'contract' }, timeOff: [] },
-    rates: { standard: 90 },
-    status: 'pending-hire',
-    maxAssignments: 3,
-    maxHoursPerDay: 10,
-    certifications: [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    auditLog: [],
-  },
-];
+
+
 
 const ResourceListPage: React.FC = () => {
   const [resources, setResources] = useState<Resource[]>([]);
@@ -61,25 +17,22 @@ const ResourceListPage: React.FC = () => {
   const [skillFilter, setSkillFilter] = useState('');
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    setTimeout(() => {
-      setResources(MOCK_RESOURCES);
-      setLoading(false);
-    }, 1000);
-    // In a real app: 
-    // const fetchResources = async () => {
-    //   try {
-    //     // const data = await resourceService.listResources({ status: statusFilter, skill: skillFilter, search: searchTerm });
-    //     // setResources(data);
-    //   } catch (error) {
-    //     console.error("Failed to fetch resources:", error);
-    //     // TODO: Add error notification
-    //   }
-    //   setLoading(false);
-    // };
-    // fetchResources();
-  }, []); // Removed filters from dependency array for mock, add them for real API
+    const fetchResources = async () => {
+      setLoading(true);
+      try {
+        const data = await resourceService.listResources();
+        setResources(data);
+      } catch (error) {
+        console.error("Failed to fetch resources:", error);
+        // TODO: Add user-facing error notification (e.g., toast message)
+        setResources([]); // Clear resources on error or set to an empty state
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResources();
+  }, []); // Empty dependency array means this runs once on mount
 
   const filteredResources = useMemo(() => {
     return resources.filter(resource => {
