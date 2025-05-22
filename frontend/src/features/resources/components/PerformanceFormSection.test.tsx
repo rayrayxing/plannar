@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PerformanceFormSection from './PerformanceFormSection';
 import { ModalContext, ModalContextType } from '../../../contexts/ModalContext'; 
@@ -91,7 +91,7 @@ const renderWithModalContext = (ui: React.ReactElement, providerProps?: Partial<
 describe('PerformanceFormSection', () => {
   const mockSetPerformanceMetrics = jest.fn();
 
-  const defaultProps = {
+  const baseDefaultProps = { 
     performanceMetrics: [] as PerformanceMetric[],
     setPerformanceMetrics: mockSetPerformanceMetrics,
   };
@@ -101,10 +101,62 @@ describe('PerformanceFormSection', () => {
   });
 
   it('should render correctly with title, add button, and empty message when no metrics', () => {
-    renderWithModalContext(<PerformanceFormSection {...defaultProps} />);
-    expect(screen.getByText('Performance History')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Add New Metric/i })).toBeInTheDocument();
+    renderWithModalContext(<PerformanceFormSection {...baseDefaultProps} />);
+    expect(screen.getByText('Historical Performance Metrics')).toBeInTheDocument(); 
+    expect(screen.getByRole('button', { name: /Add Metric/i })).toBeInTheDocument(); 
     expect(screen.getByText('No performance metrics recorded.')).toBeInTheDocument();
+  });
+
+  it('should render a list of metrics when performanceMetrics are provided', () => {
+    const mockMetricsData: PerformanceMetric[] = [
+      {
+        id: 'metric-1',
+        metricName: 'Communication',
+        rating: 5,
+        reviewDate: '2023-01-15T10:00:00.000Z',
+        reviewerId: 'reviewer-1',
+        resourceId: 'resource-123',
+        comments: 'Excellent communication skills.',
+      },
+      {
+        id: 'metric-2',
+        metricName: 'Technical Skills',
+        rating: 4,
+        reviewDate: '2023-07-20T10:00:00.000Z',
+        reviewerId: 'reviewer-2',
+        resourceId: 'resource-123',
+      },
+    ];
+    const propsWithMetrics = {
+      ...baseDefaultProps,
+      performanceMetrics: mockMetricsData,
+    };
+
+    renderWithModalContext(<PerformanceFormSection {...propsWithMetrics} />);
+
+    expect(screen.getByText('Historical Performance Metrics')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add Metric/i })).toBeInTheDocument();
+    expect(screen.queryByText('No performance metrics recorded.')).not.toBeInTheDocument();
+
+    mockMetricsData.forEach(metric => {
+      const primaryText = `${metric.metricName}: ${metric.rating}`;
+      let secondaryTextRegexStr = `Date: ${metric.reviewDate.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}`;
+      secondaryTextRegexStr += ` \\| Reviewer: ${metric.reviewerId || 'N/A'}`;
+      if (metric.comments) {
+        secondaryTextRegexStr += ` \\| Comments: ${metric.comments.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}`;
+      }
+      
+      const listItem = screen.getByText(primaryText).closest('li');
+      expect(listItem).not.toBeNull();
+
+      if (listItem) {
+        expect(within(listItem).getByText(primaryText)).toBeInTheDocument();
+        expect(within(listItem).getByText(new RegExp(secondaryTextRegexStr))).toBeInTheDocument();
+        
+        expect(within(listItem).getByRole('button', { name: /edit/i })).toBeInTheDocument();
+        expect(within(listItem).getByRole('button', { name: /delete/i })).toBeInTheDocument();
+      }
+    });
   });
 
   // More tests will follow

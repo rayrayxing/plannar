@@ -212,7 +212,7 @@
     - [ ] Unit tests for frontend resource management components (including modal interactions).
         - [ ] **`PerformanceFormSection.tsx` Tests:** (Test rendering, adding, editing, and deleting performance metrics)
             - [x] Setup test file `PerformanceFormSection.test.tsx` with necessary mocks (props, modal context).
-            - [ ] Test initial rendering (title, empty state, list of metrics with correct data, "Add New Metric" button).
+            - [x] Test initial rendering (title, empty state, list of metrics with correct data, "Add New Metric" button).
             - [ ] Test "Add New Metric" functionality:
                 - [ ] Verify modal opens.
                 - [ ] Verify `onMetricsChange` is called with the new metric on modal submission.
