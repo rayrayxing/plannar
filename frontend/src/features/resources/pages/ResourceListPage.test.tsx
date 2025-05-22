@@ -266,5 +266,69 @@ describe('ResourceListPage', () => {
     // More pagination tests (previous page, rows per page) will follow
   });
 
+  describe('Search Functionality', () => {
+    const generateMockResources = (length: number, offset: number = 0, namePrefix: string = 'Resource') => 
+      Array.from({ length }, (_, i) => ({ 
+        id: `res-${i + offset}`,
+        info: { name: `${namePrefix} ${i + offset}`, email: `res${i + offset}@example.com`, primaryRole: 'Developer' }, 
+        status: 'Available',
+        projectCount: i % 3,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: generateMockResources(5, 0, "Initial"), total: 5 });
+    });
+
+    it('should filter resources by name when text is entered in search input', async () => {
+      const searchTerm = 'Alice';
+      const searchResults = [
+        { id: 'res-alice', info: { name: 'Alice Wonderland', email: 'alice@example.com', primaryRole: 'Engineer' }, status: 'Active', projectCount: 1 }
+      ];
+      
+      renderWithProviders(<ResourceListPage />);
+      
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const searchInput = screen.getByRole('searchbox', { name: /search/i }); 
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: searchResults, total: searchResults.length });
+      
+      fireEvent.change(searchInput, { target: { value: searchTerm } });
+      
+      expect(await screen.findByText('Alice Wonderland')).toBeInTheDocument();
+      expect(screen.queryByText('Initial 0')).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ query: searchTerm, page: 1 })
+      );
+    });
+    
+    it('should show all resources when search input is cleared', async () => {
+        const searchTerm = 'Alice';
+        const searchResults = [{ id: 'res-alice', info: { name: 'Alice Wonderland', email: 'alice@example.com', primaryRole: 'Engineer' }, status: 'Active', projectCount: 1 }];
+        const allResourcesAfterClear = generateMockResources(5, 0, "All");
+
+        renderWithProviders(<ResourceListPage />);
+        expect(await screen.findByText('Initial 0')).toBeInTheDocument(); 
+
+        const searchInput = screen.getByRole('searchbox', { name: /search/i });
+
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: searchResults, total: searchResults.length });
+        fireEvent.change(searchInput, { target: { value: searchTerm } });
+        expect(await screen.findByText('Alice Wonderland')).toBeInTheDocument();
+
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: allResourcesAfterClear, total: allResourcesAfterClear.length });
+        fireEvent.change(searchInput, { target: { value: '' } }); 
+
+        expect(await screen.findByText('All 0')).toBeInTheDocument(); 
+        expect(screen.queryByText('Alice Wonderland')).not.toBeInTheDocument(); 
+
+        expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+            expect.objectContaining({ query: '', page: 1 })
+        );
+    });
+  });
+
   // More test suites will follow
 });

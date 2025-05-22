@@ -235,7 +235,9 @@
                 - [x] Verify clicking "Next Page" fetches and displays the correct data.
                 - [x] Verify clicking "Previous Page" fetches and displays the correct data.
                 - [x] Verify changing "Rows per page" fetches and displays data correctly.
-            - [ ] Test search functionality (name/email).
+            - [x] Test search functionality (name/email).
+                - [x] Verify filtering by name/email calls API with query and updates UI.
+                - [x] Verify clearing search calls API with empty query and updates UI.
             - [ ] Test status filter functionality.
             - [ ] Test skills filter functionality (modal opening, selection, application).
             - [ ] Test rate range filter functionality.
