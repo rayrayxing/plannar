@@ -52,6 +52,30 @@ const ResourceListPage: React.FC = () => {
     });
   }, [resources, searchTerm, statusFilter, skillFilter]);
 
+  const sortedAndFilteredResources = useMemo(() => {
+    let sorted = [...filteredResources]; // Create a new array for sorting
+
+    if (sortKey === 'name') {
+      sorted.sort((a, b) => {
+        const nameA = `${a.personalInfo.firstName} ${a.personalInfo.lastName}`.toLowerCase();
+        const nameB = `${b.personalInfo.firstName} ${b.personalInfo.lastName}`.toLowerCase();
+        if (nameA < nameB) return sortDirection === 'asc' ? -1 : 1;
+        if (nameA > nameB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    } else if (sortKey === 'status') {
+      sorted.sort((a, b) => {
+        const statusA = a.status.toLowerCase();
+        const statusB = b.status.toLowerCase();
+        if (statusA < statusB) return sortDirection === 'asc' ? -1 : 1;
+        if (statusA > statusB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    // If sortKey is '', no sorting is done, original filteredResources order is preserved.
+    return sorted;
+  }, [filteredResources, sortKey, sortDirection]);
+
   return (
     <Container maxWidth="xl" className="py-8">
       <Paper elevation={3} className="p-6 mb-8">
@@ -132,9 +156,9 @@ const ResourceListPage: React.FC = () => {
           <CircularProgress />
           <Typography className="ml-2">Loading Resources...</Typography>
         </Box>
-      ) : filteredResources.length > 0 ? (
+      ) : sortedAndFilteredResources.length > 0 ? (
         <Grid container spacing={3}>
-          {filteredResources.map(resource => (
+          {sortedAndFilteredResources.map(resource => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={resource.id}>
               <ResourceCard resource={resource} />
             </Grid>
