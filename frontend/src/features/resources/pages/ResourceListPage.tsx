@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Container, Typography, Grid, TextField, Select, MenuItem, InputLabel, FormControl, Box, Paper, CircularProgress, Pagination } from '@mui/material';
 import ResourceCard from '../components/ResourceCard';
-import { Resource, ResourceStatus, Skill } from '../../../types/resource.types';
+import { Resource, ResourceStatus, Skill, WorkArrangementType } from '../../../types/resource.types';
 
 // TODO: Import an API service to handle the actual data fetching
 import { resourceService } from '../services/resourceService';
@@ -15,6 +15,7 @@ const ResourceListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<ResourceStatus | 'all'>('all');
   const [skillFilter, setSkillFilter] = useState('');
+  const [availabilityFilter, setAvailabilityFilter] = useState<WorkArrangementType | ''>( '');
   const [sortKey, setSortKey] = useState<string>(''); // '' for none, 'name', 'status'
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,9 +51,10 @@ const ResourceListPage: React.FC = () => {
       const skillMatch = skillFilter === '' || (resource.skills || []).some(skill => 
         (skill.skillName || '').toLowerCase().includes(skillFilterLower)
       );
-      return (nameMatch || emailMatch) && statusMatch && skillMatch;
+      const availabilityMatch = availabilityFilter === '' || resource.availability.workArrangement === availabilityFilter;
+      return (nameMatch || emailMatch) && statusMatch && skillMatch && availabilityMatch;
     });
-  }, [resources, searchTerm, statusFilter, skillFilter]);
+  }, [resources, searchTerm, statusFilter, skillFilter, availabilityFilter]);
 
   const sortedAndFilteredResources = useMemo(() => {
     let sorted = [...filteredResources]; // Create a new array for sorting
@@ -92,7 +94,7 @@ const ResourceListPage: React.FC = () => {
           Resource Directory
         </Typography>
         <Grid container spacing={2} alignItems="center" className="mb-4">
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={2}>
             <TextField 
               label="Search by Name/Email"
               variant="outlined"
@@ -128,6 +130,22 @@ const ResourceListPage: React.FC = () => {
               value={skillFilter}
               onChange={(e) => setSkillFilter(e.target.value)}
             />
+          </Grid>
+          <Grid item xs={12} sm={6} md={2}>
+            <FormControl fullWidth variant="outlined" size="small">
+              <InputLabel>Availability</InputLabel>
+              <Select
+                value={availabilityFilter}
+                onChange={(e) => setAvailabilityFilter(e.target.value as WorkArrangementType | '')}
+                label="Availability"
+              >
+                <MenuItem value=""><em>All</em></MenuItem>
+                <MenuItem value="full-time">Full-time</MenuItem>
+                <MenuItem value="part-time">Part-time</MenuItem>
+                <MenuItem value="contractor">Contractor</MenuItem>
+                <MenuItem value="intern">Intern</MenuItem>
+              </Select>
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={6} md={2}>
             <FormControl fullWidth variant="outlined" size="small">

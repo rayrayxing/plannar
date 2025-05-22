@@ -189,7 +189,7 @@
             - [x] Fetch list of resources using API call (replace mock data).
             - [ ] Implement advanced filtering:
                 - [x] Basic filtering (name, email, status, skill name). (Client-side filtering for name, email, status, skill name implemented and fixed)
-                - [ ] Add filter for Availability (Work Arrangement Type).
+                - [x] Add filter for Availability (Work Arrangement Type).
                 - [ ] Add filter for Rate Range (Standard Rate, e.g., min/max input).
                 - [ ] Design and Add UI elements for new filters.
                 - [ ] Implement filtering logic for new filters within `ResourceListPage.tsx`.
