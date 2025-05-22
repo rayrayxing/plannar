@@ -6,6 +6,7 @@ import SkillsCertsFormSection from './SkillsCertsFormSection';
 import AvailabilityFormSection from './AvailabilityFormSection';
 import RatesLimitsFormSection from './RatesLimitsFormSection';
 import PreferencesFormSection from './PreferencesFormSection';
+import PerformanceFormSection from './PerformanceFormSection';
 
 
 interface ResourceFormProps {
@@ -24,22 +25,24 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUp
   const [maxHoursPerDay, setMaxHoursPerDay] = useState<number>(initialData?.maxHoursPerDay || 14);
   const [certifications, setCertifications] = useState<CertificationDetail[]>(initialData?.certifications || []);
   const [preferences, setPreferences] = useState<ResourcePreferences>(initialData?.preferences || {});
+  const [historicalPerformanceMetrics, setHistoricalPerformanceMetrics] = useState<HistoricalPerformanceMetric[]>(initialData?.historicalPerformanceMetrics || []);
   const [specializations, setSpecializations] = useState<string[]>(initialData?.specializations || []);
-  // historicalPerformanceMetrics will likely be managed elsewhere or through a different interface
+
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     const resourceData: Omit<Resource, 'id' | 'createdAt' | 'updatedAt' | 'auditLog'> = {
       personalInfo,
       skills,
+      certifications,
       availability,
       rates,
       status,
       maxAssignments,
       maxHoursPerDay,
-      preferences,
-      certifications,
       specializations,
+      preferences,
+      historicalPerformanceMetrics,
       // department, location, managerId can be added if needed
     };
     onSubmit(resourceData);
@@ -118,6 +121,12 @@ const ResourceForm: React.FC<ResourceFormProps> = ({ onSubmit, initialData, isUp
         preferences={preferences} 
         onPreferencesChange={setPreferences} 
       />
+
+      <PerformanceFormSection 
+        performanceMetrics={historicalPerformanceMetrics} 
+        setPerformanceMetrics={setHistoricalPerformanceMetrics} 
+      />
+
 
 
       <RatesLimitsFormSection 
