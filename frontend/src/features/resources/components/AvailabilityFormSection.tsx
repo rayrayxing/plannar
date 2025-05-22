@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box, Typography, Grid, Paper, Select, MenuItem, InputLabel, FormControl, Button, TextField, Checkbox, FormGroup, FormControlLabel, IconButton, List, ListItem, ListItemText, ListItemSecondaryAction
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { Availability, WorkArrangement, TimeOffEntry, DayHours } from '../../../types/resource.types';
+import { useModal } from '../../../contexts/ModalContext';
 
 interface AvailabilityFormSectionProps {
   availability: Availability;
@@ -16,10 +18,7 @@ const daysOfWeek: (keyof WorkArrangement['standardHours'])[] = ['monday', 'tuesd
 const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ availability, setAvailability }) => {
   const { workArrangement, timeOff } = availability;
 
-  const [newTimeOffStartDate, setNewTimeOffStartDate] = useState('');
-  const [newTimeOffEndDate, setNewTimeOffEndDate] = useState('');
-  const [newTimeOffType, setNewTimeOffType] = useState<'vacation' | 'sick-leave' | 'personal' | 'public-holiday' | 'other'>('vacation');
-  const [newTimeOffDescription, setNewTimeOffDescription] = useState('');
+  const { openModal } = useModal();
 
   const handleWorkArrangementTypeChange = (event: any) => {
     const type = event.target.value as WorkArrangement['type'];
@@ -64,20 +63,30 @@ const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ avail
   };
 
   const handleAddTimeOff = () => {
-    if (!newTimeOffStartDate || !newTimeOffEndDate) return; // Basic validation
-    const newEntry: TimeOffEntry = {
-      startDate: newTimeOffStartDate,
-      endDate: newTimeOffEndDate,
-      type: newTimeOffType,
-      description: newTimeOffDescription.trim() || undefined,
-    };
-    setAvailability({ ...availability, timeOff: [...timeOff, newEntry] });
-    setNewTimeOffStartDate('');
-    setNewTimeOffEndDate('');
-    setNewTimeOffType('vacation');
-    setNewTimeOffDescription('');
+    openModal<'resourceAvailabilityException'>({
+      modalType: 'resourceAvailabilityException',
+      modalProps: {
+        onSubmit: (newEntry) => {
+          setAvailability({ ...availability, timeOff: [...timeOff, newEntry] });
+        },
+      }
+    });
   };
 
+  const handleEditTimeOff = (index: number) => {
+    const entryToEdit = timeOff[index];
+    openModal<'resourceAvailabilityException'>({
+      modalType: 'resourceAvailabilityException',
+      modalProps: {
+        initialData: entryToEdit,
+        onSubmit: (updatedEntry) => {
+          const updatedList = [...timeOff];
+          updatedList[index] = updatedEntry;
+          setAvailability({ ...availability, timeOff: updatedList });
+        },
+      }
+    });
+  };
   const handleRemoveTimeOff = (index: number) => {
     setAvailability({ ...availability, timeOff: timeOff.filter((_, i) => i !== index) });
   };
@@ -176,83 +185,38 @@ const AvailabilityFormSection: React.FC<AvailabilityFormSectionProps> = ({ avail
         </Box>
       )}
 
-      {/* Time Off Section */}
-      <Typography variant="subtitle1" className="mt-6 mb-2">Time Off</Typography>
-      <Grid container spacing={2} alignItems="flex-end" className="mb-4">
-        <Grid item xs={12} sm={3}>
-          <TextField 
-            label="Start Date"
-            type="date"
-            value={newTimeOffStartDate}
-            onChange={(e) => setNewTimeOffStartDate(e.target.value)}
-            fullWidth 
-            size="small"
-            InputLabelProps={{ shrink: true }}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <TextField 
-            label="End Date"
-            type="date"
-            value={newTimeOffEndDate}
-            onChange={(e) => setNewTimeOffEndDate(e.target.value)}
-            fullWidth 
-            size="small"
-            InputLabelProps={{ shrink: true }}
-            required
-          />
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <FormControl fullWidth size="small">
-            <InputLabel id="time-off-type-label">Type</InputLabel>
-            <Select
-              labelId="time-off-type-label"
-              label="Type"
-              value={newTimeOffType}
-              onChange={(e) => setNewTimeOffType(e.target.value as TimeOffEntry['type'])}
-            >
-              <MenuItem value="vacation">Vacation</MenuItem>
-              <MenuItem value="sick-leave">Sick Leave</MenuItem>
-              <MenuItem value="personal">Personal</MenuItem>
-              <MenuItem value="public-holiday">Public Holiday</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid item xs={12} sm={3}>
-          <TextField 
-            label="Description (Optional)"
-            value={newTimeOffDescription}
-            onChange={(e) => setNewTimeOffDescription(e.target.value)}
-            fullWidth 
-            size="small"
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <Button 
-            variant="outlined" 
-            onClick={handleAddTimeOff} 
-            startIcon={<AddCircleOutlineIcon />}
-            fullWidth
-          >
-            Add Time Off Entry
-          </Button>
-        </Grid>
-      </Grid>
+      {/* Time Off Section - Title and Add Button */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4, mb: 2 }}>
+        <Typography variant="subtitle1">Time Off / Availability Exceptions</Typography>
+        <Button 
+          variant="outlined" 
+          onClick={handleAddTimeOff} 
+          startIcon={<AddCircleOutlineIcon />}
+        >
+          Add Time Off
+        </Button>
+      </Box>
       {timeOff.length > 0 && (
-        <List dense>
+        <List dense sx={{ mt: 1 }}>
           {timeOff.map((entry, index) => (
-            <ListItem key={index} className="mb-1 border rounded">
+            <ListItem 
+              key={entry.id || index}
+              className="mb-1 border rounded"
+              secondaryAction={
+                <Box>
+                  <IconButton edge="end" aria-label="edit" onClick={() => handleEditTimeOff(index)} size="small" sx={{ mr: 0.5 }}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveTimeOff(index)} size="small">
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Box>
+              }
+            >
               <ListItemText 
                 primary={`${entry.type.charAt(0).toUpperCase() + entry.type.slice(1)}: ${entry.startDate} to ${entry.endDate}`}
-                secondary={entry.description}
+                secondary={entry.description || 'No description'}
               />
-              <ListItemSecondaryAction>
-                <IconButton edge="end" aria-label="delete" onClick={() => handleRemoveTimeOff(index)} size="small">
-                  <DeleteIcon />
-                </IconButton>
-              </ListItemSecondaryAction>
             </ListItem>
           ))}
         </List>
