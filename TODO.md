@@ -254,7 +254,10 @@
                 - [x] Verify clicking "Status" header sorts by status (asc/desc) and calls API.
             - [x] Test "View Details" button navigation for a resource.
             - [x] Test "Edit" button navigation for a resource.
-            - [ ] Test "Delete" button functionality (confirmation modal, API call).
+            - [x] Test "Delete" button functionality (confirmation modal, API call).
+                - [x] Verify clicking "Delete" shows confirmation modal.
+                - [x] Verify confirming deletion calls API, closes modal, and updates UI.
+                - [x] Verify cancelling deletion closes modal and does not call API.
     - [ ] Integration tests for Resource Management APIs (as per TRD Sec 4.1.2). (PENDING - Blocked by Firebase project setup)
     - [ ] E2E tests for creating, viewing, and updating resource profiles, including modal-driven workflows.
             - [x] Confirmed basic MUI components (`Button`, `Dialog`) render correctly in tests.

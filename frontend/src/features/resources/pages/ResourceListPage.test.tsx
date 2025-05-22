@@ -798,5 +798,93 @@ describe('ResourceListPage', () => {
     // Test for "Edit" button navigation will follow
   });
 
+  describe('Delete Resource Functionality', () => {
+    const resourceToDelete = { 
+      id: 'res-del-1', 
+      info: { name: 'Deletable Resource', email: 'delete@example.com', primaryRole: 'Removable' }, 
+      status: 'Available', 
+      projectCount: 0 
+    };
+    const initialResources = [
+        resourceToDelete,
+        { id: 'res-keep-1', info: { name: 'Keeper Resource', email: 'keep@example.com', primaryRole: 'Stays' }, status: 'Busy', projectCount: 2 }
+    ];
+    const mockDeleteResource = jest.fn();
+    const mockNavigate = jest.fn();
+
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { deleteResource: jest.Mock }).deleteResource = mockDeleteResource;
+      mockDeleteResource.mockClear();
+      mockDeleteResource.mockResolvedValue({}); 
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: [...initialResources], 
+        total: initialResources.length 
+      });
+      
+      mockNavigate.mockClear();
+      (require('react-router-dom') as { useNavigate: jest.Mock }).useNavigate.mockReturnValue(mockNavigate);
+    });
+
+    it('should show confirmation modal and delete resource upon confirmation', async () => {
+      renderWithProviders(<ResourceListPage />);
+      
+      const resourceNameCell = await screen.findByText('Deletable Resource');
+      expect(resourceNameCell).toBeInTheDocument();
+      expect(screen.getByText('Keeper Resource')).toBeInTheDocument(); 
+
+      const row = resourceNameCell.closest('tr');
+      expect(row).not.toBeNull();
+
+      const deleteButton = within(row!).getByRole('button', { name: /delete/i }); 
+      fireEvent.click(deleteButton);
+
+      const confirmationModal = await screen.findByRole('dialog', { name: /confirm deletion|delete resource/i }); 
+      expect(confirmationModal).toBeInTheDocument();
+      expect(within(confirmationModal).getByText(/are you sure you want to delete/i)).toBeInTheDocument(); 
+
+      const resourcesAfterDeletion = initialResources.filter(r => r.id !== resourceToDelete.id);
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+          data: resourcesAfterDeletion, 
+          total: resourcesAfterDeletion.length 
+      });
+
+      const confirmDeleteButton = within(confirmationModal).getByRole('button', { name: /confirm|delete/i }); 
+      fireEvent.click(confirmDeleteButton);
+
+      expect(mockDeleteResource).toHaveBeenCalledTimes(1);
+      expect(mockDeleteResource).toHaveBeenCalledWith(resourceToDelete.id);
+
+      expect(screen.queryByRole('dialog', { name: /confirm deletion|delete resource/i })).not.toBeInTheDocument();
+      
+      expect(await screen.findByText('Keeper Resource')).toBeInTheDocument(); 
+      expect(screen.queryByText('Deletable Resource')).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenCalledTimes(2);
+    });
+
+    it('should close confirmation modal and not delete if "Cancel" is clicked', async () => {
+        renderWithProviders(<ResourceListPage />);
+        const resourceNameCell = await screen.findByText('Deletable Resource');
+        const row = resourceNameCell.closest('tr');
+        const deleteButton = within(row!).getByRole('button', { name: /delete/i });
+        fireEvent.click(deleteButton);
+
+        const confirmationModal = await screen.findByRole('dialog', { name: /confirm deletion|delete resource/i });
+        
+        const cancelButton = within(confirmationModal).getByRole('button', { name: /cancel/i });
+        fireEvent.click(cancelButton);
+
+        expect(screen.queryByRole('dialog', { name: /confirm deletion|delete resource/i })).not.toBeInTheDocument();
+        
+        expect(mockDeleteResource).not.toHaveBeenCalled();
+
+        expect(screen.getByText('Deletable Resource')).toBeInTheDocument();
+        expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenCalledTimes(1);
+    });
+  });
+
   // More test suites will follow
 });
