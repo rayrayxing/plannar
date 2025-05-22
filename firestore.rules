@@ -1,25 +1,146 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /resources/{resourceId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null; // Further validation in Cloud Function
 
-      // Allow updates if not touching 'rates', OR if touching 'rates' and user is admin/manager.
-      // This means if the `rates` object itself is part of the update payload, roles are checked.
-      // More granular checks (e.g., if only rates.standard changes) are harder in rules alone
-      // and are better handled in conjunction with backend logic.
-      allow update: if request.auth != null &&
-                       (
-                         // Case 1: 'rates' field is NOT part of the incoming update data
-                         !('rates' in request.resource.data) ||
-                         // Case 2: 'rates' IS part of the incoming update data, check role
-                         ('rates' in request.resource.data && 
-                          (request.auth.token.role == 'admin' || request.auth.token.role == 'manager'))
-                       );
-      
-      allow delete: if request.auth != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'manager');
+    // Helper functions (TRD Sec 3.4)
+    function isAuthenticated() {
+      return request.auth != null;
     }
-    // TODO: Add rules for other collections (projects, schedules, etc.)
+
+    function hasRole(roleName) {
+      return isAuthenticated() && request.auth.token.role == roleName;
+    }
+
+    function hasAnyRole(rolesArray) {
+      return isAuthenticated() && request.auth.token.role in rolesArray;
+    }
+
+    // Example: isOwner(resourceId, 'ownerUserIdField') - assuming 'ownerUserIdField' exists on the document
+    // This is a generic owner check; specific ownership logic might vary per collection.
+    function isOwner(docId, userIdField) {
+      return isAuthenticated() && resource.data[userIdField] == request.auth.uid;
+    }
+
+    // Placeholder for more complex project manager check - may require specific data structure or Cloud Function call
+    function isProjectManager(projectId) {
+      // Example: return isAuthenticated() && get(/databases/$(database)/documents/projects/$(projectId)).data.managerUids[request.auth.uid] == true;
+      // This requires 'managerUids' to be a map on the project document.
+      // For simplicity, we'll initially rely on 'admin' or 'manager' roles for project edits.
+      return hasAnyRole(['admin', 'manager']); 
+    }
+
+    // Basic data validation placeholders (TRD Sec 3.4) - detailed validation in Cloud Functions
+    function commonValidationRules() {
+      // Example: check for excessive data size, common malicious patterns (very basic)
+      return request.resource.size() < 1024 * 1024; // Max 1MB doc size
+    }
+
+    function validResourceData(data) {
+      return commonValidationRules() &&
+             data.info.name is string && data.info.name.size() > 0 &&
+             data.info.email is string && data.info.email.matches('^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$') &&
+             data.status is string && data.status in ['available', 'unavailable', 'assigned', 'onboarding', 'departing'];
+             // Add more checks as per TRD Sec 3.2.1, keeping them simple for rules
+    }
+
+    function validProjectData(data) {
+      return commonValidationRules() &&
+             data.info.name is string && data.info.name.size() > 0 &&
+             data.status is string && data.status in ['planning', 'active', 'on_hold', 'completed', 'archived'];
+             // Add more checks as per TRD Sec 3.2.2
+    }
+
+    function validScheduleData(data) {
+      return commonValidationRules() &&
+             data.projectId is string && data.projectId.size() > 0 &&
+             data.resourceId is string && data.resourceId.size() > 0 &&
+             data.taskId is string && data.taskId.size() > 0 &&
+             data.startDate is timestamp && data.endDate is timestamp && data.endDate > data.startDate;
+             // Add more checks as per TRD Sec 3.2.3
+    }
+
+    function validSkillData(data) {
+      return commonValidationRules() &&
+             data.name is string && data.name.size() > 0 &&
+             data.category is string;
+             // Add more checks as per TRD Sec 3.2.4
+    }
+
+    function validModalInteractionData(data) {
+      return commonValidationRules() &&
+             data.modalName is string && data.modalName.size() > 0 &&
+             data.userId is string && data.userId == request.auth.uid && // User can only log their own interactions
+             data.timestamp is timestamp;
+             // Add more checks as per TRD Sec 3.2.6
+    }
+
+    function validAnalyticsData(data) {
+      // Analytics data is typically written by trusted backend processes (Cloud Functions)
+      // So, rules might be more permissive for writes from such processes, or very restrictive for client writes.
+      // For now, assume only admins/backend can write.
+      return commonValidationRules();
+    }
+
+    // Collection Rules
+    match /resources/{resourceId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && validResourceData(request.resource.data); // Further validation in Cloud Function
+      allow update: if isAuthenticated() && validResourceData(request.resource.data) &&
+                       (
+                         // Case 1: 'rates' field is NOT part of the incoming update data or user is admin/manager
+                         !('rates' in request.resource.data) || hasAnyRole(['admin', 'manager']) ||
+                         // Case 2: 'rates' IS part of the incoming update data, check role (redundant with above but explicit)
+                         ('rates' in request.resource.data && hasAnyRole(['admin', 'manager']))
+                       );
+      allow delete: if hasAnyRole(['admin', 'manager']);
+    }
+
+    match /projects/{projectId} {
+      allow read: if isAuthenticated();
+      allow create: if hasAnyRole(['admin', 'manager']) && validProjectData(request.resource.data);
+      allow update: if isProjectManager(projectId) && validProjectData(request.resource.data); // isProjectManager currently defaults to admin/manager
+      allow delete: if hasAnyRole(['admin', 'manager']);
+      // Tasks subcollection
+      match /tasks/{taskId} {
+        allow read: if isAuthenticated();
+        allow create: if isProjectManager(projectId) && validProjectData(get(/databases/$(database)/documents/projects/$(projectId)).data); // Task data validation can be simpler or part of project
+        allow update: if isProjectManager(projectId) && validProjectData(get(/databases/$(database)/documents/projects/$(projectId)).data);
+        allow delete: if isProjectManager(projectId);
+      }
+    }
+
+    match /schedules/{scheduleId} {
+      allow read: if isAuthenticated(); // Users might read their own or project schedules
+      // Create/Update/Delete typically handled by backend logic due to complexity (conflict checks, availability updates)
+      // For now, allow managers/admins to create/update directly, assuming backend handles complex logic.
+      allow create: if hasAnyRole(['admin', 'manager']) && validScheduleData(request.resource.data);
+      allow update: if hasAnyRole(['admin', 'manager']) && validScheduleData(request.resource.data);
+      allow delete: if hasAnyRole(['admin', 'manager']);
+    }
+
+    match /skills/{skillId} {
+      allow read: if isAuthenticated();
+      // Skills are typically managed by admins
+      allow create: if hasRole('admin') && validSkillData(request.resource.data);
+      allow update: if hasRole('admin') && validSkillData(request.resource.data);
+      allow delete: if hasRole('admin');
+    }
+
+    match /modalInteractions/{interactionId} {
+      allow read: if hasAnyRole(['admin', 'manager']); // Or if isOwner(interactionId, 'userId') for users to read their own
+      allow create: if isAuthenticated() && validModalInteractionData(request.resource.data) && request.resource.data.userId == request.auth.uid;
+      // No updates or deletes from client typically
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    match /analytics/{analyticId} {
+      allow read: if hasAnyRole(['admin', 'manager']);
+      // Analytics data should ideally be written by trusted backend functions, not directly by clients.
+      // If clients need to write some raw event data that gets aggregated, define a separate path with stricter rules.
+      allow create: if hasAnyRole(['admin', 'manager']) && validAnalyticsData(request.resource.data); // Or specific backend service account
+      allow update: if hasAnyRole(['admin', 'manager']) && validAnalyticsData(request.resource.data);
+      allow delete: if hasAnyRole(['admin', 'manager']);
+    }
   }
 }
