@@ -573,5 +573,177 @@ describe('ResourceListPage', () => {
     });
   });
 
+  describe('Sorting Functionality', () => {
+    const generateMockResources = (count: number, prefix: string = "Resource") =>
+      Array.from({ length: count }, (_, i) => ({
+        id: `res-sort-${i}`,
+        info: { name: `${prefix} ${i}`, email: `user${i}@example.com`, primaryRole: 'Dev' },
+        status: i % 2 === 0 ? 'Available' : 'Busy',
+        projectCount: i,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: generateMockResources(3, "Initial"), 
+        total: 3 
+      });
+    });
+
+    it('should sort resources by name in ascending order when "Name" header is clicked once', async () => {
+      const sortedByNameAsc = [ 
+        { id: 'res-alpha', info: { name: 'Alpha', email: 'a@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 1 },
+        { id: 'res-beta', info: { name: 'Beta', email: 'b@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 2 },
+        { id: 'res-gamma', info: { name: 'Gamma', email: 'g@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 3 },
+      ];
+      
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument(); 
+
+      const nameHeader = screen.getByRole('columnheader', { name: /name/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByNameAsc, total: sortedByNameAsc.length });
+      
+      fireEvent.click(nameHeader);
+      
+      const resourceNames = await screen.findAllByText(/Alpha|Beta|Gamma/);
+      expect(resourceNames.map(el => el.textContent)).toEqual(['Alpha', 'Beta', 'Gamma']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'info.name', sortOrder: 'asc', page: 1 })
+      );
+    });
+
+    it('should sort resources by name in descending order when "Name" header is clicked twice', async () => {
+      const sortedByNameAsc = [
+        { id: 'res-alpha', info: { name: 'Alpha', email: 'a@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 1 },
+        { id: 'res-beta', info: { name: 'Beta', email: 'b@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 2 },
+        { id: 'res-gamma', info: { name: 'Gamma', email: 'g@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 3 },
+      ];
+      const sortedByNameDesc = [...sortedByNameAsc].reverse(); 
+
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const nameHeader = screen.getByRole('columnheader', { name: /name/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByNameAsc, total: sortedByNameAsc.length });
+      fireEvent.click(nameHeader);
+      await screen.findByText('Alpha'); 
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByNameDesc, total: sortedByNameDesc.length });
+      fireEvent.click(nameHeader);
+
+      const resourceNames = await screen.findAllByText(/Alpha|Beta|Gamma/);
+      expect(resourceNames.map(el => el.textContent)).toEqual(['Gamma', 'Beta', 'Alpha']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'info.name', sortOrder: 'desc', page: 1 })
+      );
+    });
+
+    it('should sort resources by email in ascending order when "Email" header is clicked once', async () => {
+      const sortedByEmailAsc = [ 
+        { id: 'res-a-mail', info: { name: 'User A', email: 'a.user@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 1 },
+        { id: 'res-b-mail', info: { name: 'User B', email: 'b.user@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 2 },
+        { id: 'res-c-mail', info: { name: 'User C', email: 'c.user@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 3 },
+      ];
+      
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const emailHeader = screen.getByRole('columnheader', { name: /email/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByEmailAsc, total: sortedByEmailAsc.length });
+      fireEvent.click(emailHeader);
+      
+      const resourceEmails = await screen.findAllByText(/a.user@example.com|b.user@example.com|c.user@example.com/);
+      expect(resourceEmails.map(el => el.textContent)).toEqual(['a.user@example.com', 'b.user@example.com', 'c.user@example.com']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'info.email', sortOrder: 'asc', page: 1 })
+      );
+    });
+
+    it('should sort resources by email in descending order when "Email" header is clicked twice', async () => {
+      const sortedByEmailAsc = [
+        { id: 'res-a-mail', info: { name: 'User A', email: 'a.user@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 1 },
+        { id: 'res-b-mail', info: { name: 'User B', email: 'b.user@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 2 },
+        { id: 'res-c-mail', info: { name: 'User C', email: 'c.user@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 3 },
+      ];
+      const sortedByEmailDesc = [...sortedByEmailAsc].reverse();
+
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const emailHeader = screen.getByRole('columnheader', { name: /email/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByEmailAsc, total: sortedByEmailAsc.length });
+      fireEvent.click(emailHeader);
+      await screen.findByText('a.user@example.com'); 
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByEmailDesc, total: sortedByEmailDesc.length });
+      fireEvent.click(emailHeader);
+
+      const resourceEmails = await screen.findAllByText(/a.user@example.com|b.user@example.com|c.user@example.com/);
+      expect(resourceEmails.map(el => el.textContent)).toEqual(['c.user@example.com', 'b.user@example.com', 'a.user@example.com']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'info.email', sortOrder: 'desc', page: 1 })
+      );
+    });
+
+    it('should sort resources by status in ascending order when "Status" header is clicked once', async () => {
+      const sortedByStatusAsc = [
+        { id: 'res-s1', info: { name: 'Status A', email: 's1@example.com', primaryRole: 'Dev' }, status: 'Active', projectCount: 1 },
+        { id: 'res-s2', info: { name: 'Status B', email: 's2@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 2 },
+        { id: 'res-s3', info: { name: 'Status C', email: 's3@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 3 },
+      ];
+      
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const statusHeader = screen.getByRole('columnheader', { name: /status/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByStatusAsc, total: sortedByStatusAsc.length });
+      fireEvent.click(statusHeader);
+      
+      const resourceStatuses = await screen.findAllByText(/Active|Available|Busy/);
+      expect(resourceStatuses.map(el => el.textContent)).toEqual(['Active', 'Available', 'Busy']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'status', sortOrder: 'asc', page: 1 })
+      );
+    });
+
+    it('should sort resources by status in descending order when "Status" header is clicked twice', async () => {
+      const sortedByStatusAsc = [
+        { id: 'res-s1', info: { name: 'Status A', email: 's1@example.com', primaryRole: 'Dev' }, status: 'Active', projectCount: 1 },
+        { id: 'res-s2', info: { name: 'Status B', email: 's2@example.com', primaryRole: 'Dev' }, status: 'Available', projectCount: 2 },
+        { id: 'res-s3', info: { name: 'Status C', email: 's3@example.com', primaryRole: 'Dev' }, status: 'Busy', projectCount: 3 },
+      ];
+      const sortedByStatusDesc = [...sortedByStatusAsc].reverse();
+
+      renderWithProviders(<ResourceListPage />);
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+      const statusHeader = screen.getByRole('columnheader', { name: /status/i });
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByStatusAsc, total: sortedByStatusAsc.length });
+      fireEvent.click(statusHeader);
+      await screen.findByText('Active'); 
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: sortedByStatusDesc, total: sortedByStatusDesc.length });
+      fireEvent.click(statusHeader);
+
+      const resourceStatuses = await screen.findAllByText(/Active|Available|Busy/);
+      expect(resourceStatuses.map(el => el.textContent)).toEqual(['Busy', 'Available', 'Active']);
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ sortBy: 'status', sortOrder: 'desc', page: 1 })
+      );
+    });
+  });
+
   // More test suites will follow
 });

@@ -248,7 +248,10 @@
             - [x] Test rate range filter functionality.
                 - [x] Verify entering min/max rate calls API with rateMin/rateMax and updates UI.
                 - [x] Verify clearing rate inputs calls API with undefined rates and updates UI.
-            - [ ] Test sorting functionality (by name, email, status).
+            - [x] Test sorting functionality (by name, email, status).
+                - [x] Verify clicking "Name" header sorts by name (asc/desc) and calls API.
+                - [x] Verify clicking "Email" header sorts by email (asc/desc) and calls API.
+                - [x] Verify clicking "Status" header sorts by status (asc/desc) and calls API.
             - [ ] Test "View Details" button navigation for a resource.
             - [ ] Test "Edit" button navigation for a resource.
             - [ ] Test "Delete" button functionality (confirmation modal, API call).
