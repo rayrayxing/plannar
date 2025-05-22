@@ -79,6 +79,16 @@ export interface AuditLogEntry {
   description?: string; // e.g., "Updated skill proficiency"
 }
 
+
+export interface ResourcePreferences {
+  preferredProjectTypes?: string[];
+  preferredWorkHours?: string; // e.g., "flexible", "9-5", "early bird", "night owl"
+  communicationStyle?: string; // e.g., "Prefers Slack over Email", "Daily stand-ups preferred"
+  workLocation?: 'remote' | 'office' | 'hybrid';
+  travelPreference?: 'none' | 'occasional' | 'frequent';
+  otherNotes?: string; // General notes about work preferences
+}
+
 export type ResourceStatus = 'active' | 'onboarding' | 'offboarding' | 'on-leave' | 'pending-hire';
 
 export interface Resource {
@@ -92,6 +102,7 @@ export interface Resource {
   status: ResourceStatus; // active, onboarding, offboarding (PRD Line 241)
   certifications?: CertificationDetail[]; // General certifications (TRD Sec 3.2.1)
   specializations?: string[]; // General specializations
+  preferences?: ResourcePreferences;
   historicalPerformanceMetrics?: HistoricalPerformanceMetric[]; // (PRD Line 62)
   auditLog?: AuditLogEntry[]; // (PRD Line 69)
   createdAt: string; // Timestamp

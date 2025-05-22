@@ -75,6 +75,12 @@
         - [x] Interface for defining work arrangements, time off, and availability exceptions (as per TRD `availability`, potentially modal-driven).
         - [x] Interface for inputting rate information (as per TRD `rates`, including history; access control pending app-level role logic).
         - [ ] Interface for managing resource preferences and performance notes (as per TRD `preferences`, `performance`).
+        - [x] Define `ResourcePreferences` type and add to `Resource` type in `resource.types.ts`.
+        - [x] Create `PreferencesFormSection.tsx` for resource preferences UI.
+        - [x] Integrate `PreferencesFormSection.tsx` into `ResourceForm.tsx` and update state.
+        - [ ] Create `PerformanceFormSection.tsx` for historical performance metrics UI.
+        - [ ] Design and implement `PerformanceMetricModal.tsx` for adding/editing performance entries.
+        - [ ] Integrate `PerformanceFormSection.tsx` (with modal) into `ResourceForm.tsx` and update state.
     - [/] Develop UI for viewing and listing resource profiles (with filtering options - PRD Line 341). (Initial components ResourceCard.tsx, ResourceListPage.tsx, ResourceDetailPage.tsx created with mock data. API integration, full detail view as per TRD schema, and advanced filtering pending)
     - [/] Develop UI for updating resource profiles. (Initial UpdateResourcePage.tsx reusing ResourceForm.tsx. API integration pending; adapt to use modals as appropriate).
     - [x] Develop UI for viewing resource skills. (Covered by ResourceDetailPage.tsx - ensure all TRD skill fields shown).
