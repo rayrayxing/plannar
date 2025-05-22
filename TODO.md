@@ -175,8 +175,8 @@
                 - [x] Verify current rate and currency are displayed.
                 - [ ] Verify rate history (with effective dates) is displayed. (Blocked: Not in current `Rates` type; requires type update & API support)
                 - [ ] Implement access control for rate information based on user role (PRD Line 68) - (Frontend check + Backend enforcement). (Blocked: Requires user role context & backend support)
-            - [ ] **Display Performance History (TRD `performance`):**
-                - [ ] Verify list of `PerformanceMetric` entries is displayed.
+            - [x] **Display Performance History (TRD `performance`):**
+                - [x] Verify list of `PerformanceMetric` entries is displayed. (Updated to match current `PerformanceMetric` type)
             - [ ] **Display Preferences (TRD `preferences`):**
                 - [ ] Verify all fields from `Resource.preferences` are displayed.
             - [ ] **Display Audit History (PRD Line 69):**

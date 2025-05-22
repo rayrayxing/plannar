@@ -228,13 +228,15 @@ const ResourceDetailPage: React.FC = () => {
                         {(resource.performance).map((metric) => (
                             <ListItem key={metric.id} disableGutters sx={{ alignItems: 'flex-start', py: 0.5 }}>
                                 <ListItemText 
-                                    primary={`${metric.metricName}: ${metric.value}`}
+                                    primary={`${metric.metricName}: ${metric.rating}`} // Assuming rating is displayable as is
                                     secondaryTypographyProps={{ component: 'div', style: { whiteSpace: 'pre-line' } }}
                                     secondary={
-                                        `Date: ${metric.date}` +
-                                        (metric.period ? `\nPeriod: ${metric.period}` : '') +
-                                        (metric.assessedBy ? `\nAssessed By: ${metric.assessedBy}` : '') +
-                                        (metric.notes ? `\nNotes: ${metric.notes}` : '')
+                                        `Date: ${metric.reviewDate}` +
+                                        (metric.reviewCycleId ? `\nCycle: ${metric.reviewCycleId}` : '') +
+                                        (metric.reviewerId ? `\nReviewer: ${metric.reviewerId}` : '') +
+                                        (metric.comments ? `\nComments: ${metric.comments}` : '') +
+                                        (metric.goalsSet ? `\nGoals Set: ${metric.goalsSet}` : '') +
+                                        (metric.achievements ? `\nAchievements: ${metric.achievements}` : '')
                                     } 
                                 />
                             </ListItem>
