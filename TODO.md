@@ -187,7 +187,12 @@
                 - [x] Add "Back to List" button. (Already present)
         - [/] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
             - [x] Fetch list of resources using API call (replace mock data).
-            - [/] Implement filtering (by status, skills, etc.). (Client-side filtering for name, email, status, skill name implemented and fixed; more filters pending as per inline TODO)
+            - [ ] Implement advanced filtering:
+                - [x] Basic filtering (name, email, status, skill name). (Client-side filtering for name, email, status, skill name implemented and fixed)
+                - [ ] Add filter for Availability (Work Arrangement Type).
+                - [ ] Add filter for Rate Range (Standard Rate, e.g., min/max input).
+                - [ ] Design and Add UI elements for new filters.
+                - [ ] Implement filtering logic for new filters within `ResourceListPage.tsx`.
             - [x] Implement sorting:
                 - [x] Add UI elements for selecting sort key (e.g., Name, Status) and direction (ASC/DESC).
                 - [x] Add state variables for current sort key and direction.
