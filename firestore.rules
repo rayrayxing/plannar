@@ -21,12 +21,32 @@ service cloud.firestore {
       return isAuthenticated() && resource.data[userIdField] == request.auth.uid;
     }
 
-    // Placeholder for more complex project manager check - may require specific data structure or Cloud Function call
     function isProjectManager(projectId) {
-      // Example: return isAuthenticated() && get(/databases/$(database)/documents/projects/$(projectId)).data.managerUids[request.auth.uid] == true;
-      // This requires 'managerUids' to be a map on the project document.
-      // For simplicity, we'll initially rely on 'admin' or 'manager' roles for project edits.
-      return hasAnyRole(['admin', 'manager']); 
+      // Ensure the user is authenticated before trying to access project data or auth details.
+      if (!isAuthenticated()) {
+        return false;
+      }
+      // Check if the project document exists and has the manager field.
+      // Assumes project structure: projects/{projectId}/info/manager contains the manager's UID.
+      let projectDoc = get(/databases/$(database)/documents/projects/$(projectId));
+      return projectDoc.data != null && 
+             projectDoc.data.info != null && 
+             projectDoc.data.info.manager == request.auth.uid;
+    }
+
+    function canModifySchedule(scheduleId) {
+      // Ensure the user is authenticated before checking modification permissions.
+      if (!isAuthenticated()) {
+        return false;
+      }
+      let scheduleDoc = get(/databases/$(database)/documents/schedules/$(scheduleId));
+      // Check if schedule exists and has necessary fields.
+      if (scheduleDoc.data == null || scheduleDoc.data.createdBy == null || scheduleDoc.data.projectId == null) {
+        return false; // Or handle as an error / deny access
+      }
+      return hasRole('admin') || 
+             scheduleDoc.data.createdBy == request.auth.uid ||
+             isProjectManager(scheduleDoc.data.projectId);
     }
 
     // Basic data validation placeholders (TRD Sec 3.4) - detailed validation in Cloud Functions
@@ -83,7 +103,10 @@ service cloud.firestore {
 
     // Collection Rules
     match /resources/{resourceId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && 
+                     (hasAnyRole(['admin', 'manager', 'resource_manager', 'project_manager']) || 
+                      (request.auth.uid == resource.data.info.id) // User can read their own resource profile if info.id is their UID
+                     );
       allow create: if isAuthenticated() && validResourceData(request.resource.data); // Further validation in Cloud Function
       allow update: if isAuthenticated() && validResourceData(request.resource.data) &&
                        (
@@ -114,7 +137,7 @@ service cloud.firestore {
       // Create/Update/Delete typically handled by backend logic due to complexity (conflict checks, availability updates)
       // For now, allow managers/admins to create/update directly, assuming backend handles complex logic.
       allow create: if hasAnyRole(['admin', 'manager']) && validScheduleData(request.resource.data);
-      allow update: if hasAnyRole(['admin', 'manager']) && validScheduleData(request.resource.data);
+      allow update: if validScheduleData(request.resource.data) && canModifySchedule(scheduleId);
       allow delete: if hasAnyRole(['admin', 'manager']);
     }
 

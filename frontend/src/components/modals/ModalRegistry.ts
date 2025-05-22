@@ -36,6 +36,14 @@ export const getModalComponent = (type: string): React.FC<ModalComponentProps<an
 // registerModal('EXAMPLE_MODAL', ExampleModalComponent);
 
 // Register SkillFormModal
-import SkillFormModal from './SkillFormModal'; // Ensure SkillFormModalData is also exported or used correctly
+import SkillFormModal from '../../modals/SkillFormModal'; // Corrected path
+import ConfirmationModal from '../../modals/ConfirmationModal';
+import ResourceSkillModal from '../../modals/ResourceSkillModal';
+import ResourceCertificationModal from '../../modals/ResourceCertificationModal';
+import ResourceAvailabilityExceptionModal from '../../modals/ResourceAvailabilityExceptionModal';
 registerModal('skillForm', SkillFormModal);
+registerModal('confirmation', ConfirmationModal);
+registerModal('resourceSkill', ResourceSkillModal);
+registerModal('resourceCertification', ResourceCertificationModal);
+registerModal('resourceAvailabilityException', ResourceAvailabilityExceptionModal);
 

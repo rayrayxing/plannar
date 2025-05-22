@@ -5,16 +5,16 @@
 - [ ] **Environment Setup & Core APIs**
     - [x] Initialize Git repository with appropriate `.gitignore`.
     - [ ] Setup Firebase project (Authentication, Firestore, Cloud Functions, Storage, Hosting). (PRD Lines 187, 191-192, 196-201; TRD Sec 2.2.2) - **ACTION REQUIRED: User to set this up in Firebase console.** (Blocker for backend deployment and full backend dev environment setup)
-        - [ ] Configure Firestore security rules as per TRD Sec 3.4 (including helper functions like `hasRole`, `isProjectManager`, `validResourceData`, etc.).
+        - [/] Configure Firestore security rules as per TRD Sec 3.4 (including helper functions like `hasRole`, `isProjectManager`, `validResourceData`, etc.). (Drafted in firestore.rules; deployment & full testing pending Firebase project setup)
     - [ ] Setup Google Cloud Platform project if additional services beyond Firebase are anticipated. (PRD Line 186) - **ACTION REQUIRED: User to set this up in GCP console if needed.**
     - [x] Setup frontend development environment (React.js with TypeScript, Material UI, Tailwind CSS, Echarts). (PRD Lines 188-189, sample_wireframe.md)
     - [/] Setup backend development environment (Node.js/TypeScript for Cloud Functions). (Basic structure created; full setup including `firebase init functions` and local emulator depends on Firebase project initialization by user)
-    - [/] Establish coding standards and linting rules for frontend and backend. (TailwindCSS v4 compatible linter plugin for `eslint-plugin-tailwindcss` is pending)
+        - [/] Establish coding standards and linting rules for frontend and backend. (Official `eslint-plugin-tailwindcss` for TailwindCSS v4 is pending; community fork `hyoban/eslint-plugin-tailwindcss` exists as a potential interim solution to monitor - Issue #384, PR #385 in main repo)
     - [x] Configure basic CI/CD pipeline for automated builds and tests. (GitHub Actions workflow created)
     - [x] Implement Authentication API endpoints (TRD Sec 4.1.1).
         - [x] Backend: Firebase Auth `onUserCreate` trigger to set custom claims (e.g., default role).
         - [x] Backend: Firebase Callable Function `getUserData` to retrieve user details with claims.
-        - [ ] Frontend: Integrate Firebase SDK for login, logout, token refresh, and calling `getUserData`.
+        - [x] Frontend: Integrate Firebase SDK for login, logout, token refresh, and calling `getUserData`.
 
 - [ ] **Initial UI/UX Design & Modal System Foundation**
     - [x] Create detailed wireframes for all core screens identified in PRD (Lines 331-373) and `sample_wireframe.md`. (Textual wireframes created in /wireframes directory)
@@ -27,6 +27,7 @@
     - [ ] Frontend: Implement Modal Stack Manager (if complex stacking is anticipated early) (TRD Sec 2.2.5). (Deferred, current system supports one modal at a time)
     - [x] Frontend: Develop basic reusable modal wrapper/renderer component (`ModalWrapper.tsx` as `ModalRenderer` using Material UI Dialogs - TRD Sec 1.4, 2.2.5).
     - [x] Frontend: Integrate `ModalProvider` and `ModalRenderer` into `App.tsx`.
+    - [x] Frontend: Develop generic `ConfirmationModal` component. (TRD Sec 2.2.5, 6.1.1)
     - [ ] (Placeholder) Define initial requirements for mobile application UI/UX, focusing on adaptive modals (TRD Sec 2.2.1).
 
 - [x] **Core Data Collections & APIs (Foundational - TRD Sec 3.2, 4.1)**
@@ -79,7 +80,7 @@
     - [x] Develop UI for viewing resource skills. (Covered by ResourceDetailPage.tsx - ensure all TRD skill fields shown).
     - [x] Develop UI for viewing audit history of profile changes. (AuditLogDisplay.tsx created, integrated with mock data)
     - [ ] Implement API service calls from frontend to backend for all Resource Profile Management features, ensuring all TRD fields are handled.
-    - [ ] Develop standard modals for resource sub-tasks (e.g., add/edit skill, add/edit certification, manage availability exceptions) (TRD Sec 2.2.5).
+    - [x] Develop standard modals for resource sub-tasks (e.g., add/edit skill, add/edit certification, manage availability exceptions) (TRD Sec 2.2.5). (Implemented `ResourceSkillModal`, `ResourceCertificationModal`, `ResourceAvailabilityExceptionModal`)
 
 #### 3. Testing
     - [~] Unit tests for backend resource management logic (Cloud Functions). (Jest setup complete. `createResourceLogic` validation error tests PASSING. `createResourceLogic` success test FAILING due to `firebase-admin` initializeApp mock issue. Other function tests PENDING - expand to cover all TRD fields and logic).
