@@ -172,9 +172,9 @@
                 - [x] Verify standard weekly work hours (start/end for each day) are displayed.
                 - [x] Verify list of availability exceptions/time off is displayed. (Key fixed)
             - [ ] **Display Rate Information (TRD `rates`):**
-                - [ ] Verify current rate and currency are displayed.
-                - [ ] Verify rate history (with effective dates) is displayed.
-                - [ ] Implement access control for rate information based on user role (PRD Line 68) - (Frontend check + Backend enforcement).
+                - [x] Verify current rate and currency are displayed.
+                - [ ] Verify rate history (with effective dates) is displayed. (Blocked: Not in current `Rates` type; requires type update & API support)
+                - [ ] Implement access control for rate information based on user role (PRD Line 68) - (Frontend check + Backend enforcement). (Blocked: Requires user role context & backend support)
             - [ ] **Display Performance History (TRD `performance`):**
                 - [ ] Verify list of `PerformanceMetric` entries is displayed.
             - [ ] **Display Preferences (TRD `preferences`):**
