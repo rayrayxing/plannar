@@ -177,8 +177,8 @@
                 - [ ] Implement access control for rate information based on user role (PRD Line 68) - (Frontend check + Backend enforcement). (Blocked: Requires user role context & backend support)
             - [x] **Display Performance History (TRD `performance`):**
                 - [x] Verify list of `PerformanceMetric` entries is displayed. (Updated to match current `PerformanceMetric` type)
-            - [ ] **Display Preferences (TRD `preferences`):**
-                - [ ] Verify all fields from `Resource.preferences` are displayed.
+            - [x] **Display Preferences (TRD `preferences`):**
+                - [x] Verify all fields from `Resource.preferences` are displayed. (Updated to match current `ResourcePreferences` type)
             - [ ] **Display Audit History (PRD Line 69):**
                 - [ ] Fetch and display audit log entries related to the resource.
             - [ ] **General UI/UX:**

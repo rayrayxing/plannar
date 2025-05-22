@@ -202,22 +202,39 @@ const ResourceDetailPage: React.FC = () => {
                 {resource.rates.overtime && <Typography><strong>Overtime:</strong> ${resource.rates.overtime}/hr ({resource.rates.currency})</Typography>}
                 {resource.rates.weekend && <Typography><strong>Weekend:</strong> ${resource.rates.weekend}/hr ({resource.rates.currency})</Typography>}
                 <Typography variant="h6" gutterBottom className="mt-4">Preferences</Typography>
-                {resource.preferences ? (
-                    <>
-                        {resource.preferences.projectPreferences && resource.preferences.projectPreferences.length > 0 && (
-                            <Typography><strong>Project Types:</strong> {resource.preferences.projectPreferences.join(', ')}</Typography>
-                        )}
-                        {resource.preferences.workloadPreferences && (
-                            <Typography><strong>Workload:</strong> {resource.preferences.workloadPreferences}</Typography>
-                        )}
-                        {resource.preferences.skillDevelopment && resource.preferences.skillDevelopment.length > 0 && (
-                            <Typography><strong>Skill Development:</strong> {resource.preferences.skillDevelopment.join(', ')}</Typography>
-                        )}
-                        {resource.preferences.other && (
-                            <Typography><strong>Other:</strong> {resource.preferences.other}</Typography>
-                        )}
-                    </>
-                ) : <Typography>No preferences specified.</Typography>}
+                    {resource.preferences ? (
+                        <>
+                            {resource.preferences.preferredProjects && resource.preferences.preferredProjects.length > 0 && (
+                                <Typography><strong>Preferred Projects:</strong> {resource.preferences.preferredProjects.join(', ')}</Typography>
+                            )}
+                            {resource.preferences.preferredRoles && resource.preferences.preferredRoles.length > 0 && (
+                                <Typography><strong>Preferred Roles:</strong> {resource.preferences.preferredRoles.join(', ')}</Typography>
+                            )}
+                            {resource.preferences.developmentGoals && resource.preferences.developmentGoals.length > 0 && (
+                                <Typography><strong>Development Goals:</strong> {resource.preferences.developmentGoals.join(', ')}</Typography>
+                            )}
+                            {resource.preferences.notificationPreferences && (
+                                <Box mt={1}>
+                                    <Typography variant="subtitle2">Notification Preferences:</Typography>
+                                    <Typography sx={{ pl: 1, fontSize: '0.875rem' }}>
+                                        Email: {resource.preferences.notificationPreferences.email ? 'Yes' : 'No'}
+                                    </Typography>
+                                    <Typography sx={{ pl: 1, fontSize: '0.875rem' }}>
+                                        In-App: {resource.preferences.notificationPreferences.inApp ? 'Yes' : 'No'}
+                                    </Typography>
+                                    <Typography sx={{ pl: 1, fontSize: '0.875rem' }}>
+                                        SMS: {resource.preferences.notificationPreferences.sms ? 'Yes' : 'No'}
+                                    </Typography>
+                                </Box>
+                            )}
+                            {/* Check if any preference was actually displayed to show "No preferences specified." more accurately */}
+                            {!(resource.preferences.preferredProjects?.length ||
+                               resource.preferences.preferredRoles?.length ||
+                               resource.preferences.developmentGoals?.length ||
+                               resource.preferences.notificationPreferences
+                            ) && <Typography>No specific preferences detailed.</Typography>}
+                        </>
+                    ) : <Typography>No preferences specified.</Typography>}
             </Grid>
         </Grid>
             {/* Performance Metrics Section */}
