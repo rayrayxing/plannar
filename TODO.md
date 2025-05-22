@@ -238,7 +238,9 @@
             - [x] Test search functionality (name/email).
                 - [x] Verify filtering by name/email calls API with query and updates UI.
                 - [x] Verify clearing search calls API with empty query and updates UI.
-            - [ ] Test status filter functionality.
+            - [x] Test status filter functionality.
+                - [x] Verify selecting a status calls API with status and updates UI.
+                - [x] Verify clearing status filter calls API with empty status and updates UI.
             - [ ] Test skills filter functionality (modal opening, selection, application).
             - [ ] Test rate range filter functionality.
             - [ ] Test sorting functionality (by name, email, status).

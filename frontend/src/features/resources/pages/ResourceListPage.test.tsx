@@ -330,5 +330,77 @@ describe('ResourceListPage', () => {
     });
   });
 
+  describe('Status Filter Functionality', () => {
+    const generateMockResources = (length: number, offset: number = 0, namePrefix: string = 'Resource', status: string = 'Available') => 
+      Array.from({ length }, (_, i) => ({ 
+        id: `res-${i + offset}`,
+        info: { name: `${namePrefix} ${i + offset}`, email: `res${i + offset}@example.com`, primaryRole: 'Developer' }, 
+        status: status, 
+        projectCount: i % 3,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: generateMockResources(3, 0, "Initial", "Available").concat(generateMockResources(2, 3, "Initial", "Busy")), 
+        total: 5 
+      });
+    });
+
+    it('should filter resources by status when a status is selected', async () => {
+      const filterStatus = 'Available';
+      const filteredResults = generateMockResources(2, 0, "Filtered", filterStatus); 
+      
+      renderWithProviders(<ResourceListPage />);
+      
+      expect(await screen.findByText('Initial 0')).toBeInTheDocument(); 
+      expect(await screen.findByText('Initial 3')).toBeInTheDocument(); 
+
+      const statusFilterSelect = screen.getByLabelText(/status/i); 
+      
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: filteredResults, total: filteredResults.length });
+      
+      fireEvent.mouseDown(statusFilterSelect); 
+      const optionAvailable = await screen.findByRole('option', { name: filterStatus });
+      fireEvent.click(optionAvailable);
+      
+      expect(await screen.findByText('Filtered 0')).toBeInTheDocument();
+      expect(screen.queryByText(/Initial 3/i)).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+        expect.objectContaining({ status: filterStatus, page: 1 })
+      );
+    });
+
+    it('should show all resources when status filter is cleared (e.g., selecting "All")', async () => {
+        const filterStatus = 'Available';
+        const filteredResults = generateMockResources(2, 0, "Filtered", filterStatus);
+        const allResourcesAfterClear = generateMockResources(5, 0, "All", "Mixed"); 
+
+        renderWithProviders(<ResourceListPage />);
+        expect(await screen.findByText('Initial 0')).toBeInTheDocument();
+
+        const statusFilterSelect = screen.getByLabelText(/status/i);
+
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: filteredResults, total: filteredResults.length });
+        fireEvent.mouseDown(statusFilterSelect);
+        fireEvent.click(await screen.findByRole('option', { name: filterStatus }));
+        expect(await screen.findByText('Filtered 0')).toBeInTheDocument();
+
+        (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: allResourcesAfterClear, total: allResourcesAfterClear.length });
+        fireEvent.mouseDown(statusFilterSelect);
+        const optionAll = await screen.findByRole('option', { name: /all statuses|any/i }); 
+        fireEvent.click(optionAll);
+
+
+        expect(await screen.findByText('All 0')).toBeInTheDocument(); 
+        expect(screen.queryByText('Filtered 0')).not.toBeInTheDocument(); 
+
+        expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(
+            expect.objectContaining({ status: '', page: 1 }) 
+        );
+    });
+  });
+
   // More test suites will follow
 });
