@@ -210,8 +210,18 @@
 #### 3. Testing
     - [~] Unit tests for backend resource management logic (Cloud Functions). (Jest setup complete. `createResourceLogic` validation error tests PASSING. `createResourceLogic` success test FAILING due to `firebase-admin` initializeApp mock issue. Other function tests PENDING - expand to cover all TRD fields and logic).
     - [ ] Unit tests for frontend resource management components (including modal interactions).
-        - [ ] `PerformanceFormSection.tsx`: Test rendering, adding, editing, and deleting performance metrics.
-        - [~] `PerformanceMetricModal.tsx`: Debugging non-rendering issue and writing comprehensive tests. (Current focus)
+        - [ ] **`PerformanceFormSection.tsx` Tests:** (Test rendering, adding, editing, and deleting performance metrics)
+            - [ ] Setup test file `PerformanceFormSection.test.tsx` with necessary mocks (props, modal context).
+            - [ ] Test initial rendering (title, empty state, list of metrics with correct data, "Add New Metric" button).
+            - [ ] Test "Add New Metric" functionality:
+                - [ ] Verify modal opens.
+                - [ ] Verify `onMetricsChange` is called with the new metric on modal submission.
+            - [ ] Test "Edit Metric" functionality:
+                - [ ] Verify modal opens with correct `initialData`.
+                - [ ] Verify `onMetricsChange` is called with the updated metric on modal submission.
+            - [ ] Test "Delete Metric" functionality:
+                - [ ] Verify `onMetricsChange` is called with the metric removed (consider confirmation if any).
+        - [x] `PerformanceMetricModal.tsx`: Debugging non-rendering issue and writing comprehensive tests. (Covered by items 98-106)
     - [ ] Integration tests for Resource Management APIs (as per TRD Sec 4.1.2). (PENDING - Blocked by Firebase project setup)
     - [ ] E2E tests for creating, viewing, and updating resource profiles, including modal-driven workflows.
             - [x] Confirmed basic MUI components (`Button`, `Dialog`) render correctly in tests.
