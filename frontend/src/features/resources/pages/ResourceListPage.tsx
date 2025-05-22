@@ -36,10 +36,16 @@ const ResourceListPage: React.FC = () => {
 
   const filteredResources = useMemo(() => {
     return resources.filter(resource => {
-      const nameMatch = resource.personalInfo.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const emailMatch = resource.personalInfo.email.toLowerCase().includes(searchTerm.toLowerCase());
+      const searchTermLower = searchTerm.toLowerCase();
+      const nameMatch = 
+        resource.personalInfo.firstName.toLowerCase().includes(searchTermLower) ||
+        resource.personalInfo.lastName.toLowerCase().includes(searchTermLower);
+      const emailMatch = resource.personalInfo.email.toLowerCase().includes(searchTermLower);
       const statusMatch = statusFilter === 'all' || resource.status === statusFilter;
-      const skillMatch = skillFilter === '' || (resource.skills || []).some(skill => skill.name.toLowerCase().includes(skillFilter.toLowerCase()));
+      const skillFilterLower = skillFilter.toLowerCase();
+      const skillMatch = skillFilter === '' || (resource.skills || []).some(skill => 
+        (skill.skillName || '').toLowerCase().includes(skillFilterLower)
+      );
       return (nameMatch || emailMatch) && statusMatch && skillMatch;
     });
   }, [resources, searchTerm, statusFilter, skillFilter]);
