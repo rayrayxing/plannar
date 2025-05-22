@@ -230,8 +230,11 @@
                 - [x] Verify pagination controls are present when there are more items than page size.
                 - [x] Verify "No resources found" message when no resources are provided.
                 - [x] Verify resource data is rendered in table rows when resources are provided.
-            - [ ] Test "Add Resource" button navigation.
-            - [ ] Test pagination functionality.
+            - [x] Test "Add Resource" button navigation.
+            - [x] Test pagination functionality.
+                - [x] Verify clicking "Next Page" fetches and displays the correct data.
+                - [x] Verify clicking "Previous Page" fetches and displays the correct data.
+                - [x] Verify changing "Rows per page" fetches and displays data correctly.
             - [ ] Test search functionality (name/email).
             - [ ] Test status filter functionality.
             - [ ] Test skills filter functionality (modal opening, selection, application).

@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -149,6 +149,121 @@ describe('ResourceListPage', () => {
     });
 
     // More tests for basic rendering will follow here
+  });
+
+  describe('Navigation', () => {
+    it('should navigate to the create resource page when "Add Resource" button is clicked', () => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: [], total: 0 });
+      renderWithProviders(<ResourceListPage />);
+      
+      const addResourceButton = screen.getByRole('button', { name: /add resource/i });
+      fireEvent.click(addResourceButton);
+      
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith('/resources/create'); 
+    });
+
+    // More navigation tests will follow
+  });
+
+  describe('Pagination Functionality', () => {
+    const generateMockResources = (length: number, offset: number = 0) => 
+      Array.from({ length }, (_, i) => ({ 
+        id: `res-${i + offset}`,
+        info: { name: `Resource ${i + offset}`, email: `res${i + offset}@example.com`, primaryRole: 'Developer' }, 
+        status: 'Available',
+        projectCount: i % 3,
+      }));
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+    });
+
+    it('should fetch the next page of resources when "Next Page" button is clicked', async () => {
+      const initialResources = generateMockResources(10); 
+      const nextPageResources = generateMockResources(5, 10); 
+      const totalResources = 15;
+      const pageSize = 10;
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: initialResources, total: totalResources });
+      renderWithProviders(<ResourceListPage />);
+      
+      expect(await screen.findByText('Resource 0')).toBeInTheDocument();
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenCalledWith(expect.objectContaining({ page: 1, limit: pageSize, query: '', status: '', skills: [], rateMin: undefined, rateMax: undefined, availabilityTypes: [], sortBy: 'info.name', sortOrder: 'asc' }));
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: nextPageResources, total: totalResources });
+      
+      const nextPageButton = screen.getByRole('button', { name: /go to next page/i });
+      fireEvent.click(nextPageButton);
+
+      expect(await screen.findByText('Resource 10')).toBeInTheDocument(); 
+      expect(screen.queryByText('Resource 0')).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenCalledWith(expect.objectContaining({ page: 2, limit: pageSize, query: '', status: '', skills: [], rateMin: undefined, rateMax: undefined, availabilityTypes: [], sortBy: 'info.name', sortOrder: 'asc' }));
+      expect(screen.getByText(`11–${totalResources} of ${totalResources}`)).toBeInTheDocument(); 
+    });
+
+    it('should fetch the previous page of resources when "Previous Page" button is clicked', async () => {
+      const page1Resources = generateMockResources(10);    
+      const page2Resources = generateMockResources(5, 10); 
+      const totalResources = 15;
+      const pageSize = 10;
+
+      (require('../../../services/api') as { getResources: jest.Mock })
+        .mockResolvedValueOnce({ data: page1Resources, total: totalResources }) 
+        .mockResolvedValueOnce({ data: page2Resources, total: totalResources }); 
+
+      renderWithProviders(<ResourceListPage />);
+      
+      expect(await screen.findByText('Resource 0')).toBeInTheDocument();
+
+      const nextPageButton = screen.getByRole('button', { name: /go to next page/i });
+      fireEvent.click(nextPageButton);
+      
+      expect(await screen.findByText('Resource 10')).toBeInTheDocument();
+      expect(screen.getByText(`11–${totalResources} of ${totalResources}`)).toBeInTheDocument();
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(expect.objectContaining({ page: 2, limit: pageSize }));
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: page1Resources, total: totalResources });
+      
+      const prevPageButton = screen.getByRole('button', { name: /go to previous page/i });
+      expect(prevPageButton).not.toBeDisabled(); 
+      fireEvent.click(prevPageButton);
+
+      expect(await screen.findByText('Resource 0')).toBeInTheDocument();
+      expect(screen.queryByText('Resource 10')).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, limit: pageSize }));
+      expect(screen.getByText(`1–${pageSize} of ${totalResources}`)).toBeInTheDocument(); 
+    });
+
+    it('should fetch resources with the new page size when "Rows per page" is changed', async () => {
+      const initialResourcesPageSize5 = generateMockResources(5); 
+      const totalResources = 15; 
+      const initialPageSize = 10; 
+      const newPageSize = 5;
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: generateMockResources(initialPageSize), total: totalResources });
+      renderWithProviders(<ResourceListPage />);
+      
+      expect(await screen.findByText('Resource 0')).toBeInTheDocument();
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenCalledWith(expect.objectContaining({ page: 1, limit: initialPageSize }));
+
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ data: initialResourcesPageSize5, total: totalResources });
+      
+      const rowsPerPageSelect = screen.getByLabelText(/rows per page/i);
+      fireEvent.mouseDown(rowsPerPageSelect); 
+      const option5 = await screen.findByRole('option', { name: '5' }); 
+      fireEvent.click(option5);
+      
+      expect(await screen.findByText('Resource 0')).toBeInTheDocument(); 
+      expect(screen.queryByText(`Resource ${newPageSize}`)).not.toBeInTheDocument(); 
+
+      expect((require('../../../services/api') as { getResources: jest.Mock }).getResources).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1, limit: newPageSize }));
+      expect(screen.getByText(`1–${newPageSize} of ${totalResources}`)).toBeInTheDocument(); 
+    });
+
+    // More pagination tests (previous page, rows per page) will follow
   });
 
   // More test suites will follow
