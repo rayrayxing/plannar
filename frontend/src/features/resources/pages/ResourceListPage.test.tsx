@@ -745,5 +745,58 @@ describe('ResourceListPage', () => {
     });
   });
 
+  describe('Row Action Navigation', () => {
+    const mockResources = [
+      { id: 'res-view-1', info: { name: 'Viewable Resource', email: 'view@example.com', primaryRole: 'Tester' }, status: 'Available', projectCount: 1 },
+    ];
+    const mockNavigate = jest.fn();
+
+    beforeEach(() => {
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockClear();
+      (require('../../../services/api') as { getResources: jest.Mock }).getResources.mockResolvedValueOnce({ 
+        data: mockResources, 
+        total: mockResources.length 
+      });
+      mockNavigate.mockClear();
+      (require('react-router-dom') as { useNavigate: jest.Mock }).useNavigate.mockReturnValue(mockNavigate);
+    });
+
+    it('should navigate to the resource details page when "View Details" button is clicked', async () => {
+      renderWithProviders(<ResourceListPage />);
+      
+      const resourceNameCell = await screen.findByText('Viewable Resource');
+      expect(resourceNameCell).toBeInTheDocument();
+
+      const row = resourceNameCell.closest('tr');
+      expect(row).not.toBeNull();
+
+      const viewDetailsButton = within(row!).getByRole('button', { name: /view details/i }); 
+      
+      fireEvent.click(viewDetailsButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(`/resources/${mockResources[0].id}`);
+    });
+
+    it('should navigate to the edit resource page when "Edit" button is clicked', async () => {
+      renderWithProviders(<ResourceListPage />);
+      
+      const resourceNameCell = await screen.findByText('Viewable Resource'); 
+      expect(resourceNameCell).toBeInTheDocument();
+
+      const row = resourceNameCell.closest('tr');
+      expect(row).not.toBeNull();
+
+      const editButton = within(row!).getByRole('button', { name: /edit/i }); 
+      
+      fireEvent.click(editButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(`/resources/${mockResources[0].id}/edit`); 
+    });
+
+    // Test for "Edit" button navigation will follow
+  });
+
   // More test suites will follow
 });

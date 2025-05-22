@@ -252,8 +252,8 @@
                 - [x] Verify clicking "Name" header sorts by name (asc/desc) and calls API.
                 - [x] Verify clicking "Email" header sorts by email (asc/desc) and calls API.
                 - [x] Verify clicking "Status" header sorts by status (asc/desc) and calls API.
-            - [ ] Test "View Details" button navigation for a resource.
-            - [ ] Test "Edit" button navigation for a resource.
+            - [x] Test "View Details" button navigation for a resource.
+            - [x] Test "Edit" button navigation for a resource.
             - [ ] Test "Delete" button functionality (confirmation modal, API call).
     - [ ] Integration tests for Resource Management APIs (as per TRD Sec 4.1.2). (PENDING - Blocked by Firebase project setup)
     - [ ] E2E tests for creating, viewing, and updating resource profiles, including modal-driven workflows.
