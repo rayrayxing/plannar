@@ -5,74 +5,9 @@ import { Resource, SkillEndorsement, Certification, PerformanceMetric, AuditLogE
 import AuditLogDisplay from '../components/AuditLogDisplay';
 
 // TODO: Import an API service
-// import { resourceService } from '../services/resourceService';
+import { resourceService } from '../services/resourceService';
 
-// Mock data for a single resource - replace with API call
-const MOCK_SINGLE_RESOURCE: Resource = {
-    id: '1',
-\
-    personalInfo: {
-      firstName: 'Alice',
-      lastName: 'Wonderland',
-      email: 'alice@example.com',
-      employeeId: 'EMP001',
-      phone: '555-1234',
-      title: 'Lead Developer',
-      department: 'Core Engineering',
-      location: 'Remote (US)',
-      startDate: '2020-06-01',
-      employmentStatus: 'Active',
-    },
-    skills: [
-        { skillId: 'react-uuid', skillName: 'React', proficiency: 8, yearsExperience: 3, lastUsedDate: '2024-05-01', interestLevel: 5, notes: 'Primary frontend skill' },
-        { skillId: 'nodejs-uuid', skillName: 'Node.js', proficiency: 7, yearsExperience: 2, lastUsedDate: '2024-04-15', interestLevel: 4 },
-        { skillId: 'ts-uuid', skillName: 'TypeScript', proficiency: 7, yearsExperience: 2, lastUsedDate: '2024-05-10', interestLevel: 4, notes: 'Used in all recent projects' },
-    ],
-    availability: {
-      workArrangement: 'full-time', // WorkArrangementType
-      workHours: { // WorkHours
-        monday: { active: true, start: '09:00', end: '17:00' },
-        tuesday: { active: true, start: '09:00', end: '17:00' },
-        wednesday: { active: true, start: '09:00', end: '17:00' },
-        thursday: { active: true, start: '09:00', end: '17:00' },
-        friday: { active: true, start: '09:00', end: '17:00' },
-        saturday: { active: false },
-        sunday: { active: false },
-      },
-      timeZone: 'America/New_York', // string
-      exceptions: [ // ExceptionEntry[]
-        { id: 'ex1', startDate: '2024-07-01', endDate: '2024-07-05', type: 'vacation', description: 'Summer break' },
-        { id: 'ex2', startDate: '2024-08-19', endDate: '2024-08-19', type: 'sick-leave', description: 'Doctor appointment' },
-      ]
-    },
-    rates: { standard: 100, overtime: 150, weekend: 200, currency: 'USD' },
-    status: 'active',
-    maxAssignments: 2,
-    maxHoursPerDay: 8,
-    certifications: [
-        { id: 'cert1', name: 'AWS Certified Developer - Associate', issuingBody: 'Amazon Web Services', issueDate: '2023-03-15', expirationDate: '2026-03-15', credentialId: 'AWSCDA12345', detailsLink: 'https://aws.amazon.com/certification/certified-developer-associate/' },
-        { id: 'cert2', name: 'Certified ScrumMaster (CSM)', issuingBody: 'Scrum Alliance', issueDate: '2022-07-20', credentialId: 'CSM67890' },
-    ],
-    specializations: ['Frontend Development', 'Cloud Solutions'],
 
-    preferences: {
-      projectPreferences: ['Long-term projects', 'Frontend focused'],
-      workloadPreferences: 'Prefers 3-4 active tasks',
-      skillDevelopment: ['Learn Vue.js', 'Improve AWS skills'],
-      other: 'Enjoys mentoring junior developers',
-    },
-    managerId: 'MGR010',
-    performance: [
-        { id: 'perf1', metricName: 'Project Completion Rate', value: '95%', date: '2024-03-31', period: 'Q1 2024', notes: 'Exceeded targets for Q1 deliverables.', assessedBy: 'manager-jane-doe' },
-        { id: 'perf2', metricName: 'Client Satisfaction Score', value: '4.8/5', date: '2024-03-31', period: 'Q1 2024', notes: 'Consistently high ratings.', assessedBy: 'client-feedback-system' },
-    ],
-    createdAt: '2023-01-15T09:00:00Z',
-    updatedAt: '2024-05-20T14:30:00Z',
-    auditLog: [
-        { timestamp: '2023-01-15T09:00:00Z', userId: 'system', fieldName: '-', oldValue: '-', newValue: '-', description: 'Resource created' },
-        { timestamp: '2024-03-10T11:00:00Z', userId: 'adminUser', fieldName: 'skills', oldValue: 'Old skills array', newValue: 'New skills array', description: 'Updated skills' },
-    ],
-};
 
 const statusColors: Record<ResourceStatus, string> = {
     active: 'bg-green-100 text-green-800',
@@ -88,36 +23,27 @@ const ResourceDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, fetch the resource with `resourceId`
-      // For now, just use the mock if ID matches, or a subset for other IDs
-      if (resourceId === MOCK_SINGLE_RESOURCE.id) {
-        setResource(MOCK_SINGLE_RESOURCE);
-      } else {
-        // Simulate finding another resource from a list or a 404
-        const anotherMock = {
-            ...MOCK_SINGLE_RESOURCE, 
-            id: resourceId || 'unknown', 
-            personalInfo: {...MOCK_SINGLE_RESOURCE.personalInfo, name: `Resource ${resourceId}`}
-        };
-        setResource(anotherMock);
+    const fetchResource = async () => {
+      if (!resourceId) {
+        setResource(null); // Or handle as an error/redirect
+        setLoading(false);
+        return;
       }
-      setLoading(false);
-    }, 1000);
-    // const fetchResource = async () => {
-    //   if (!resourceId) return;
-    //   try {
-    //     // const data = await resourceService.getResourceById(resourceId);
-    //     // setResource(data);
-    //   } catch (error) {
-    //     console.error("Failed to fetch resource:", error);
-    //     // TODO: Add error notification, handle 404
-    //   }
-    //   setLoading(false);
-    // };
-    // fetchResource();
+      setLoading(true);
+      try {
+        const data = await resourceService.getResourceById(resourceId);
+        setResource(data);
+      } catch (error) {
+        console.error("Failed to fetch resource:", error);
+        setResource(null); // Clear resource on error
+        // TODO: Add user-facing error notification (e.g., toast message)
+        // TODO: Potentially differentiate 404 errors to show "Not Found" vs. other errors
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResource();
   }, [resourceId]);
 
   if (loading) {

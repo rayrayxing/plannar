@@ -157,7 +157,40 @@
             - [x] `ResourceDetailPage.tsx`: Update rendering logic for `availability` (workArrangement, workHours, timeZone, exceptions).
             - [x] `ResourceDetailPage.tsx`: Update rendering logic for `rates` to include `currency`.
             - [x] `ResourceDetailPage.tsx`: Add new section to display `ResourcePreferences`.
-    - [/] Develop UI for viewing and listing resource profiles (with filtering options - PRD Line 341). (Initial components ResourceCard.tsx, ResourceListPage.tsx, ResourceDetailPage.tsx created with mock data. API integration, full detail view as per TRD schema, and advanced filtering pending)
+    - [ ] **Develop UI for viewing and listing resource profiles (PRD Line 341)**
+        - [ ] **Resource Detail Page (`ResourceDetailPage.tsx`) - Full TRD Compliance & API Integration**
+            - [ ] **Core Display Logic & Structure:**
+                - [x] Fetch resource data by ID using API call (replace mock data).
+                - [/] Ensure basic layout displays all sections (Personal Info, Skills, Availability, Rates, Performance, Preferences, Audit Log).
+            - [ ] **Display Personal Information (TRD `info` fields):**
+                - [x] Verify all fields from `Resource.info` are displayed.
+            - [ ] **Display Skills & Certifications (TRD `skills`, `certifications`):**
+                - [ ] Display list of `SkillEndorsement` with all details (skill name, proficiency, experience, last used, interest, notes). (Skill name needs to be fetched/resolved from skillId)
+                - [ ] Display list of `Certification` with all details (name, issuing body, valid until, link).
+            - [ ] **Display Availability Information (TRD `availability`):**
+                - [ ] Verify work arrangement type, time zone are displayed.
+                - [ ] Verify standard weekly work hours (start/end for each day) are displayed.
+                - [ ] Verify list of availability exceptions/time off is displayed.
+            - [ ] **Display Rate Information (TRD `rates`):**
+                - [ ] Verify current rate and currency are displayed.
+                - [ ] Verify rate history (with effective dates) is displayed.
+                - [ ] Implement access control for rate information based on user role (PRD Line 68) - (Frontend check + Backend enforcement).
+            - [ ] **Display Performance History (TRD `performance`):**
+                - [ ] Verify list of `PerformanceMetric` entries is displayed.
+            - [ ] **Display Preferences (TRD `preferences`):**
+                - [ ] Verify all fields from `Resource.preferences` are displayed.
+            - [ ] **Display Audit History (PRD Line 69):**
+                - [ ] Fetch and display audit log entries related to the resource.
+            - [ ] **General UI/UX:**
+                - [ ] Ensure responsive design.
+                - [ ] Add "Edit" button linking to the resource edit page/form.
+                - [ ] Add "Back to List" button.
+        - [ ] **Resource List Page (`ResourceListPage.tsx`) - API Integration & Advanced Filtering**
+            - [ ] Fetch list of resources using API call (replace mock data).
+            - [ ] Implement filtering (by status, skills, etc.).
+            - [ ] Implement sorting.
+            - [ ] Implement pagination.
+            - [ ] Ensure `ResourceCard.tsx` displays summary information correctly from API data.
     - [/] Develop UI for updating resource profiles. (Initial UpdateResourcePage.tsx reusing ResourceForm.tsx. API integration pending; adapt to use modals as appropriate).
     - [x] Develop UI for viewing resource skills. (Covered by ResourceDetailPage.tsx - ensure all TRD skill fields shown).
     - [x] Develop UI for viewing audit history of profile changes. (AuditLogDisplay.tsx created, integrated with mock data)
