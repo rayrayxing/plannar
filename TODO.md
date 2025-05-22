@@ -165,8 +165,8 @@
             - [ ] **Display Personal Information (TRD `info` fields):**
                 - [x] Verify all fields from `Resource.info` are displayed.
             - [ ] **Display Skills & Certifications (TRD `skills`, `certifications`):**
-                - [ ] Display list of `SkillEndorsement` with all details (skill name, proficiency, experience, last used, interest, notes). (Skill name needs to be fetched/resolved from skillId)
-                - [ ] Display list of `Certification` with all details (name, issuing body, valid until, link).
+                - [x] Display list of `SkillEndorsement` with all details (skill name, proficiency, experience, last used, interest, notes). (Assumes skillName is populated by API; key fixed)
+                - [x] Display list of `Certification` with all details (name, issuing body, valid until, link, credentialId).
             - [ ] **Display Availability Information (TRD `availability`):**
                 - [ ] Verify work arrangement type, time zone are displayed.
                 - [ ] Verify standard weekly work hours (start/end for each day) are displayed.

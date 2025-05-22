@@ -118,7 +118,7 @@ const ResourceDetailPage: React.FC = () => {
                 {(resource.skills || []).length > 0 ? (
                     <List dense>
                         {(resource.skills || []).map((skill, index) => (
-                            <ListItem key={index} disableGutters>
+                            <ListItem key={skill.skillId} disableGutters>
                                 <ListItemText 
                                     primary={skill.skillName || skill.skillId} 
                                     secondary={
@@ -136,7 +136,25 @@ const ResourceDetailPage: React.FC = () => {
                 <Typography variant="h6" gutterBottom className="mt-4">Certifications</Typography>
                 {(resource.certifications || []).length > 0 ? (
                     <Box className="flex flex-wrap gap-1">
-                        {(resource.certifications || []).map((cert) => <Chip key={cert.id} label={cert.name} size="small" title={`Issued by: ${cert.issuingBody}, Issued: ${cert.issueDate}${cert.expirationDate ? ', Expires: ' + cert.expirationDate : ''}`} />)}
+                        {(resource.certifications || []).map((cert) => (
+                            <Chip
+                              key={cert.id}
+                              label={cert.name}
+                              size="small"
+                              title={
+                                `Issued by: ${cert.issuingBody}, Issued: ${cert.issueDate}` +
+                                (cert.expirationDate ? `, Expires: ${cert.expirationDate}` : '') +
+                                (cert.credentialId ? `, ID: ${cert.credentialId}` : '')
+                              }
+                              {...(cert.detailsLink && {
+                                component: 'a',
+                                href: cert.detailsLink,
+                                target: '_blank',
+                                rel: 'noopener noreferrer',
+                                clickable: true,
+                              })}
+                            />
+                        ))}
                     </Box>
                 ) : <Typography>No certifications listed.</Typography>}
 
