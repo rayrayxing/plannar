@@ -170,7 +170,7 @@ const ResourceDetailPage: React.FC = () => {
             <Grid item xs={12} md={4}>
                 <Typography variant="h6" gutterBottom>Availability</Typography>
                 <Typography><strong>Arrangement:</strong> {resource.availability.workArrangement}</Typography>
-                {/* {resource.availability.workArrangement.notes && <Typography><em>Notes: {resource.availability.workArrangement.notes}</em></Typography>} */}
+
                     {resource.availability.timeZone && <Typography><strong>Time Zone:</strong> {resource.availability.timeZone}</Typography>}
                     <Typography variant="subtitle1" gutterBottom className="mt-2">Standard Work Hours</Typography>
                     {resource.availability.workHours && Object.entries(resource.availability.workHours)
@@ -190,7 +190,7 @@ const ResourceDetailPage: React.FC = () => {
                 {(resource.availability.exceptions || []).length > 0 ? (
                     <List dense>
                         {(resource.availability.exceptions || []).map((ex, index) => (
-                            <ListItem key={ex.id || index} disableGutters>
+                            <ListItem key={ex.id} disableGutters>
                                 <ListItemText primary={`${ex.type.charAt(0).toUpperCase() + ex.type.slice(1)}: ${ex.startDate} to ${ex.endDate}`} secondary={ex.description} />
                             </ListItem>
                         ))}

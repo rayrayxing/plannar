@@ -167,10 +167,10 @@
             - [ ] **Display Skills & Certifications (TRD `skills`, `certifications`):**
                 - [x] Display list of `SkillEndorsement` with all details (skill name, proficiency, experience, last used, interest, notes). (Assumes skillName is populated by API; key fixed)
                 - [x] Display list of `Certification` with all details (name, issuing body, valid until, link, credentialId).
-            - [ ] **Display Availability Information (TRD `availability`):**
-                - [ ] Verify work arrangement type, time zone are displayed.
-                - [ ] Verify standard weekly work hours (start/end for each day) are displayed.
-                - [ ] Verify list of availability exceptions/time off is displayed.
+            - [x] **Display Availability Information (TRD `availability`):**
+                - [x] Verify work arrangement type, time zone are displayed. (Comment removed)
+                - [x] Verify standard weekly work hours (start/end for each day) are displayed.
+                - [x] Verify list of availability exceptions/time off is displayed. (Key fixed)
             - [ ] **Display Rate Information (TRD `rates`):**
                 - [ ] Verify current rate and currency are displayed.
                 - [ ] Verify rate history (with effective dates) is displayed.
