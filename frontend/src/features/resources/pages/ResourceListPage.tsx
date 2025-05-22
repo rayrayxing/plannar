@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Container, Typography, Grid, TextField, Select, MenuItem, InputLabel, FormControl, Box, Paper, CircularProgress } from '@mui/material';
+import { Container, Typography, Grid, TextField, Select, MenuItem, InputLabel, FormControl, Box, Paper, CircularProgress, Pagination } from '@mui/material';
 import ResourceCard from '../components/ResourceCard';
 import { Resource, ResourceStatus, Skill } from '../../../types/resource.types';
 
@@ -17,6 +17,8 @@ const ResourceListPage: React.FC = () => {
   const [skillFilter, setSkillFilter] = useState('');
   const [sortKey, setSortKey] = useState<string>(''); // '' for none, 'name', 'status'
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12); // Or a configurable value
 
   useEffect(() => {
     const fetchResources = async () => {
@@ -76,6 +78,13 @@ const ResourceListPage: React.FC = () => {
     return sorted;
   }, [filteredResources, sortKey, sortDirection]);
 
+  const paginatedResources = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return sortedAndFilteredResources.slice(startIndex, endIndex);
+  }, [sortedAndFilteredResources, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(sortedAndFilteredResources.length / itemsPerPage);
   return (
     <Container maxWidth="xl" className="py-8">
       <Paper elevation={3} className="p-6 mb-8">
@@ -158,12 +167,24 @@ const ResourceListPage: React.FC = () => {
         </Box>
       ) : sortedAndFilteredResources.length > 0 ? (
         <Grid container spacing={3}>
-          {sortedAndFilteredResources.map(resource => (
+          {paginatedResources.map(resource => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={resource.id}>
               <ResourceCard resource={resource} />
             </Grid>
           ))}
         </Grid>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}> {/* Updated styling */}
+            {totalPages > 1 && ( // Only show pagination if there's more than one page
+              <Pagination
+                count={totalPages}
+                page={currentPage}
+                onChange={(event, value) => setCurrentPage(value)}
+                color="primary"
+                showFirstButton
+                showLastButton
+              />
+            )}
+          </Box>
       ) : (
         <Typography variant="h6" className="text-center text-gray-500 mt-10">
           No resources found matching your criteria.
