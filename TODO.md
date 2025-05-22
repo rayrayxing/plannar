@@ -211,7 +211,7 @@
     - [~] Unit tests for backend resource management logic (Cloud Functions). (Jest setup complete. `createResourceLogic` validation error tests PASSING. `createResourceLogic` success test FAILING due to `firebase-admin` initializeApp mock issue. Other function tests PENDING - expand to cover all TRD fields and logic).
     - [ ] Unit tests for frontend resource management components (including modal interactions).
         - [ ] **`PerformanceFormSection.tsx` Tests:** (Test rendering, adding, editing, and deleting performance metrics)
-            - [ ] Setup test file `PerformanceFormSection.test.tsx` with necessary mocks (props, modal context).
+            - [x] Setup test file `PerformanceFormSection.test.tsx` with necessary mocks (props, modal context).
             - [ ] Test initial rendering (title, empty state, list of metrics with correct data, "Add New Metric" button).
             - [ ] Test "Add New Metric" functionality:
                 - [ ] Verify modal opens.
