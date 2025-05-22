@@ -222,6 +222,24 @@
             - [x] Test "Delete Metric" functionality:
                 - [x] Verify `setPerformanceMetrics` is called with the metric removed (consider confirmation if any).
         - [x] `PerformanceMetricModal.tsx`: Debugging non-rendering issue and writing comprehensive tests. (Covered by items 98-106)
+        - [ ] **`ResourceListPage.tsx` Tests:**
+            - [x] Test basic rendering (title, table, pagination, add button).
+                - [x] Verify page title "Resources" is displayed.
+                - [x] Verify "Add Resource" button is present.
+                - [x] Verify table headers are rendered correctly (Name, Email, Status, Primary Role, Project Count, Actions).
+                - [x] Verify pagination controls are present when there are more items than page size.
+                - [x] Verify "No resources found" message when no resources are provided.
+                - [x] Verify resource data is rendered in table rows when resources are provided.
+            - [ ] Test "Add Resource" button navigation.
+            - [ ] Test pagination functionality.
+            - [ ] Test search functionality (name/email).
+            - [ ] Test status filter functionality.
+            - [ ] Test skills filter functionality (modal opening, selection, application).
+            - [ ] Test rate range filter functionality.
+            - [ ] Test sorting functionality (by name, email, status).
+            - [ ] Test "View Details" button navigation for a resource.
+            - [ ] Test "Edit" button navigation for a resource.
+            - [ ] Test "Delete" button functionality (confirmation modal, API call).
     - [ ] Integration tests for Resource Management APIs (as per TRD Sec 4.1.2). (PENDING - Blocked by Firebase project setup)
     - [ ] E2E tests for creating, viewing, and updating resource profiles, including modal-driven workflows.
             - [x] Confirmed basic MUI components (`Button`, `Dialog`) render correctly in tests.
