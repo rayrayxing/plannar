@@ -213,9 +213,9 @@
         - [ ] **`PerformanceFormSection.tsx` Tests:** (Test rendering, adding, editing, and deleting performance metrics)
             - [x] Setup test file `PerformanceFormSection.test.tsx` with necessary mocks (props, modal context).
             - [x] Test initial rendering (title, empty state, list of metrics with correct data, "Add New Metric" button).
-            - [ ] Test "Add New Metric" functionality:
-                - [ ] Verify modal opens.
-                - [ ] Verify `onMetricsChange` is called with the new metric on modal submission.
+            - [x] Test "Add New Metric" functionality:
+                - [x] Verify modal opens.
+                - [x] Verify `setPerformanceMetrics` is called with the new metric on modal submission.
             - [ ] Test "Edit Metric" functionality:
                 - [ ] Verify modal opens with correct `initialData`.
                 - [ ] Verify `onMetricsChange` is called with the updated metric on modal submission.

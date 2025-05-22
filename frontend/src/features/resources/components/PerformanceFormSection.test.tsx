@@ -159,5 +159,95 @@ describe('PerformanceFormSection', () => {
     });
   });
 
+  describe('Add New Metric functionality', () => {
+    it('should call openModal with correct parameters when "Add Metric" button is clicked', () => {
+      renderWithModalContext(<PerformanceFormSection {...baseDefaultProps} />);
+      
+      const addButton = screen.getByRole('button', { name: /Add Metric/i });
+      fireEvent.click(addButton);
+
+      expect(mockOpenModal).toHaveBeenCalledTimes(1);
+      expect(mockOpenModal).toHaveBeenCalledWith(
+        expect.objectContaining({
+          modalType: 'performanceMetricModal',
+          modalProps: expect.objectContaining({
+            onSubmit: expect.any(Function),
+          }),
+        })
+      );
+      const openModalArgs = mockOpenModal.mock.calls[0][0];
+      expect(openModalArgs.modalProps.initialData).toBeUndefined();
+    });
+
+    it('should call setPerformanceMetrics with the new metric when modal submits', () => {
+      const initialMetrics: PerformanceMetric[] = [];
+      const props = {
+        performanceMetrics: initialMetrics,
+        setPerformanceMetrics: mockSetPerformanceMetrics,
+      };
+      renderWithModalContext(<PerformanceFormSection {...props} />);
+      
+      const addButton = screen.getByRole('button', { name: /Add Metric/i });
+      fireEvent.click(addButton);
+
+      expect(mockOpenModal).toHaveBeenCalledTimes(1);
+      const openModalCallArgs = mockOpenModal.mock.calls[0][0];
+      const onSubmitFromModalProps = openModalCallArgs.modalProps.onSubmit;
+
+      expect(onSubmitFromModalProps).toEqual(expect.any(Function));
+
+      const newMetricFromModal: PerformanceMetric = {
+        id: 'new-metric-id',
+        metricName: 'Problem Solving',
+        rating: 4,
+        reviewDate: '2024-01-01T10:00:00.000Z',
+        reviewerId: 'reviewer-3',
+        resourceId: 'resource-123',
+      };
+      
+      onSubmitFromModalProps(newMetricFromModal);
+
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledTimes(1);
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledWith([...initialMetrics, newMetricFromModal]);
+    });
+
+    it('should append new metric to existing metrics when modal submits', () => {
+        const existingMetric: PerformanceMetric = {
+            id: 'metric-1',
+            metricName: 'Communication',
+            rating: 5,
+            reviewDate: '2023-01-15T10:00:00.000Z',
+            reviewerId: 'reviewer-1',
+            resourceId: 'resource-123',
+        };
+        const initialMetrics: PerformanceMetric[] = [existingMetric];
+        const props = {
+          performanceMetrics: initialMetrics,
+          setPerformanceMetrics: mockSetPerformanceMetrics,
+        };
+        renderWithModalContext(<PerformanceFormSection {...props} />);
+        
+        const addButton = screen.getByRole('button', { name: /Add Metric/i });
+        fireEvent.click(addButton);
+  
+        expect(mockOpenModal).toHaveBeenCalledTimes(1);
+        const openModalCallArgs = mockOpenModal.mock.calls[0][0];
+        const onSubmitFromModalProps = openModalCallArgs.modalProps.onSubmit;
+  
+        const newMetricFromModal: PerformanceMetric = {
+          id: 'new-metric-id-2',
+          metricName: 'Teamwork',
+          rating: 5,
+          reviewDate: '2024-02-01T10:00:00.000Z',
+          reviewerId: 'reviewer-4',
+          resourceId: 'resource-123',
+        };
+        
+        onSubmitFromModalProps(newMetricFromModal);
+  
+        expect(mockSetPerformanceMetrics).toHaveBeenCalledTimes(1);
+        expect(mockSetPerformanceMetrics).toHaveBeenCalledWith([existingMetric, newMetricFromModal]);
+      });
+  });
   // More tests will follow
 });
