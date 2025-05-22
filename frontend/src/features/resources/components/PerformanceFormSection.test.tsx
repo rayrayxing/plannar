@@ -326,5 +326,79 @@ describe('PerformanceFormSection', () => {
       expect(mockSetPerformanceMetrics).toHaveBeenCalledWith(expectedMetricsList);
     });
   });
+  describe('Delete Metric functionality', () => {
+    const metricToDelete: PerformanceMetric = {
+      id: 'metric-id-del-1',
+      metricName: 'Adaptability',
+      rating: 3,
+      reviewDate: '2023-05-10T10:00:00.000Z',
+      reviewerId: 'reviewer-del-1',
+      resourceId: 'resource-123',
+    };
+    const metricToKeep: PerformanceMetric = {
+      id: 'metric-id-keep-1',
+      metricName: 'Leadership',
+      rating: 5,
+      reviewDate: '2023-06-10T10:00:00.000Z',
+      reviewerId: 'reviewer-keep-1',
+      resourceId: 'resource-123',
+    };
+    const initialMetricsForDelete: PerformanceMetric[] = [metricToDelete, metricToKeep];
+
+    const propsForDelete = {
+      performanceMetrics: initialMetricsForDelete,
+      setPerformanceMetrics: mockSetPerformanceMetrics,
+    };
+
+    it('should call setPerformanceMetrics with the metric removed when a "Delete" button is clicked', () => {
+      renderWithModalContext(<PerformanceFormSection {...propsForDelete} />);
+      
+      const listItemForMetricToDelete = screen.getByText(`${metricToDelete.metricName}: ${metricToDelete.rating}`).closest('li');
+      expect(listItemForMetricToDelete).not.toBeNull();
+      if (!listItemForMetricToDelete) return; 
+
+      const deleteButton = within(listItemForMetricToDelete).getByRole('button', { name: /delete/i });
+      fireEvent.click(deleteButton);
+
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledTimes(1);
+      expect(mockSetPerformanceMetrics).toHaveBeenCalledWith([metricToKeep]);
+    });
+
+    it('should correctly remove a metric when it is not the first in the list', () => {
+        const metricToKeepFirst: PerformanceMetric = {
+            id: 'metric-id-keep-2',
+            metricName: 'Initiative',
+            rating: 4,
+            reviewDate: '2023-07-10T10:00:00.000Z',
+            reviewerId: 'reviewer-keep-2',
+            resourceId: 'resource-123',
+          };
+        const metricToDeleteSecond: PerformanceMetric = {
+            id: 'metric-id-del-2',
+            metricName: 'Collaboration',
+            rating: 4,
+            reviewDate: '2023-08-10T10:00:00.000Z',
+            reviewerId: 'reviewer-del-2',
+            resourceId: 'resource-123',
+        };
+        const initialMetricsForDeleteVariant: PerformanceMetric[] = [metricToKeepFirst, metricToDeleteSecond];
+        const propsForDeleteVariant = {
+            performanceMetrics: initialMetricsForDeleteVariant,
+            setPerformanceMetrics: mockSetPerformanceMetrics,
+          };
+
+        renderWithModalContext(<PerformanceFormSection {...propsForDeleteVariant} />);
+        
+        const listItemForMetricToDelete = screen.getByText(`${metricToDeleteSecond.metricName}: ${metricToDeleteSecond.rating}`).closest('li');
+        expect(listItemForMetricToDelete).not.toBeNull();
+        if (!listItemForMetricToDelete) return;
+  
+        const deleteButton = within(listItemForMetricToDelete).getByRole('button', { name: /delete/i });
+        fireEvent.click(deleteButton);
+  
+        expect(mockSetPerformanceMetrics).toHaveBeenCalledTimes(1);
+        expect(mockSetPerformanceMetrics).toHaveBeenCalledWith([metricToKeepFirst]);
+      });
+  });
   // More tests will follow
 });
